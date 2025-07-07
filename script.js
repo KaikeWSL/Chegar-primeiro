@@ -67,14 +67,25 @@ function toggleClienteCampos() {
   }
 }
 function buscarCadastroCliente() {
-  // Simulação de busca de cadastro
-  document.getElementById('dadosClienteEncontrado').style.display = 'block';
-  document.getElementById('nomeCompletoCliente').value = 'João da Silva';
-  document.getElementById('enderecoCompletoCliente').value = 'Rua das Flores, 123, Centro, São Paulo - SP';
-  document.getElementById('empreendimentoCliente').value = 'Residencial Jardim Claro';
-  document.getElementById('servicoAtualCliente').value = 'Claro fibra 350 MEGA + globoplay';
-  document.getElementById('trocaServicoArea').innerHTML = '';
-  document.getElementById('btnTrocarServico').style.display = 'inline-block';
+  const cpf = document.getElementById('cpfContrato').value;
+  fetch(`https://chegar-primeiro.onrender.com/api/clientes/${cpf}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById('dadosClienteEncontrado').style.display = 'block';
+        document.getElementById('nomeCompletoCliente').value = data.cliente.nome_cliente;
+        document.getElementById('enderecoCompletoCliente').value = data.cliente.endereco;
+        document.getElementById('empreendimentoCliente').value = data.cliente.nome_empreendimento;
+        document.getElementById('servicoAtualCliente').value = data.cliente.servico;
+        document.getElementById('trocaServicoArea').innerHTML = '';
+        document.getElementById('btnTrocarServico').style.display = 'inline-block';
+      } else {
+        alert('Cliente não encontrado!');
+      }
+    })
+    .catch(() => {
+      alert('Erro ao buscar cliente!');
+    });
 }
 function iniciarTrocaServico() {
   abrirModalServicos('clienteExistente');
@@ -84,15 +95,70 @@ function removerTrocaServico() {
   document.getElementById('btnTrocarServico').style.display = 'inline-block';
 }
 function enviarSolicitacaoTroca() {
-  document.getElementById('solicitacaoMsg').innerHTML = `
-    <div style="background:#fff3cd; color:#856404; padding:10px; border-radius:6px; text-align:center; margin-top:8px;">
-      Solicitação enviada com sucesso!
-    </div>
-  `;
-  setTimeout(() => {
-    document.getElementById('solicitacaoMsg').innerHTML = '';
-    removerTrocaServico();
-  }, 3000);
+  fetch('https://chegar-primeiro.onrender.com/api/troca-servico', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nome_cliente: document.getElementById('nomeCompletoCliente').value,
+      cpf_ou_contrato: document.getElementById('cpfContrato').value,
+      servico_atual: document.getElementById('servicoAtualCliente').value,
+      novo_servico: document.querySelector('#trocaServicoArea input[type="text"]').value
+    })
+  })
+  .then(res => {
+    if (res.ok) {
+      document.getElementById('solicitacaoMsg').innerHTML = `
+        <div style="background:#fff3cd; color:#856404; padding:10px; border-radius:6px; text-align:center; margin-top:8px;">
+          Solicitação enviada com sucesso!
+        </div>
+      `;
+      // Limpa campos após sucesso
+      document.getElementById('nomeCompletoCliente').value = '';
+      document.getElementById('cpfContrato').value = '';
+      document.getElementById('servicoAtualCliente').value = '';
+      document.getElementById('trocaServicoArea').innerHTML = '';
+      setTimeout(() => {
+        document.getElementById('solicitacaoMsg').innerHTML = '';
+        removerTrocaServico();
+      }, 3000);
+    } else {
+      document.getElementById('solicitacaoMsg').innerHTML = `
+        <div style="background:#f8d7da; color:#721c24; padding:10px; border-radius:6px; text-align:center; margin-top:8px;">
+          Erro ao enviar solicitação!
+        </div>
+      `;
+    }
+  })
+  .catch(() => {
+    document.getElementById('solicitacaoMsg').innerHTML = `
+      <div style="background:#f8d7da; color:#721c24; padding:10px; border-radius:6px; text-align:center; margin-top:8px;">
+        Erro ao enviar solicitação!
+      </div>
+    `;
+  });
+}
+
+// Limpar campos do formulário de cliente após sucesso
+function limparFormCliente() {
+  document.getElementById('nomeCliente').value = '';
+  document.getElementById('cpfCliente').value = '';
+  document.getElementById('cepCliente').value = '';
+  document.getElementById('enderecoCliente').value = '';
+  document.getElementById('apartamentoCliente').value = '';
+  document.getElementById('blocoCliente').value = '';
+  document.getElementById('nomeEmpreendimento').value = '';
+  if (document.getElementById('servicoContratado')) document.getElementById('servicoContratado').value = '';
+  removerServicoSelecionado();
+}
+
+// Limpar campos do formulário de manutenção após sucesso
+function limparFormManutencao() {
+  document.getElementById('nomeEmpreendimentoVistoria').value = '';
+  document.getElementById('enderecoVistoria').value = '';
+  document.getElementById('apartamentoVistoria').value = '';
+  document.getElementById('blocoVistoria').value = '';
+  document.getElementById('nomeSindicoVistoria').value = '';
+  document.getElementById('engenheiroResponsavelVistoria').value = '';
 }
 
 // CPF: apenas números, 11 dígitos e validação
@@ -229,6 +295,7 @@ document.getElementById('formVendas').addEventListener('submit', function(e) {
     .then(res => {
       if (res.ok) {
         mostrarMensagem('Cliente cadastrado com sucesso!');
+        limparFormCliente();
       } else {
         mostrarMensagem('Erro ao cadastrar cliente!', false);
       }
@@ -239,25 +306,22 @@ document.getElementById('formVendas').addEventListener('submit', function(e) {
 // Envio do formulário de Manutenção (Vistoria)
 document.getElementById('formVistoria').addEventListener('submit', function(e) {
   e.preventDefault();
-  const inputs = document.querySelectorAll('#formVistoria input');
   fetch('https://chegar-primeiro.onrender.com/api/manutencoes', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      nome_empreendimento: inputs[0].value,
-      endereco: inputs[1].value,
-      data_inicio: inputs[2].value,
-      data_fim: inputs[3].value,
-      quantidade_torres: inputs[4].value,
-      andares: inputs[5].value,
-      aptos_por_andar: inputs[6].value,
-      nome_sindico: inputs[7].value,
-      engenheiro_responsavel: inputs[8].value
+      nome_empreendimento: document.getElementById('nomeEmpreendimentoVistoria').value,
+      endereco: document.getElementById('enderecoVistoria').value,
+      apartamento: document.getElementById('apartamentoVistoria').value,
+      bloco: document.getElementById('blocoVistoria').value,
+      nome_sindico: document.getElementById('nomeSindicoVistoria').value,
+      engenheiro_responsavel: document.getElementById('engenheiroResponsavelVistoria').value
     })
   })
   .then(res => {
     if (res.ok) {
       mostrarMensagem('Manutenção cadastrada com sucesso!');
+      limparFormManutencao();
     } else {
       mostrarMensagem('Erro ao cadastrar manutenção!', false);
     }

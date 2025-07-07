@@ -17,42 +17,30 @@
     <!-- Formulário Vistoria -->
     <form id="formVistoria" class="active" onsubmit="return submitForm(event)">
       <label>Nome do empreendimento</label>
-      <input type="text" required>
+      <input type="text" id="nomeEmpreendimentoVistoria" name="nomeEmpreendimentoVistoria" required>
       <label>Endereço</label>
-      <input type="text" required>
+      <input type="text" id="enderecoVistoria" name="enderecoVistoria" required>
       <div class="row">
         <div>
-          <label>Data início</label>
-          <input type="date" required>
+          <label>Apartamento</label>
+          <input type="text" id="apartamentoVistoria" name="apartamentoVistoria" required>
         </div>
         <div>
-          <label>Data fim</label>
-          <input type="date" required>
-        </div>
-      </div>
-      <label>Quantidade de torres</label>
-      <input type="text" required>
-      <div class="row">
-        <div>
-          <label>Andares</label>
-          <input type="text" required>
-        </div>
-        <div>
-          <label>Aptos por andar</label>
-          <input type="text" required>
+          <label>Bloco</label>
+          <input type="text" id="blocoVistoria" name="blocoVistoria" required>
         </div>
       </div>
       <div class="row">
         <div>
           <label>Nome do síndico</label>
-          <input type="text" required>
+          <input type="text" id="nomeSindicoVistoria" name="nomeSindicoVistoria" required>
         </div>
         <div>
           <label>Engenheiro responsável</label>
-          <input type="text" required>
+          <input type="text" id="engenheiroResponsavelVistoria" name="engenheiroResponsavelVistoria" required>
         </div>
       </div>
-      <button class="submit-btn" type="submit">Subir arquivos</button>
+      <button class="submit-btn" type="submit">Enviar</button>
     </form>
     <!-- Formulário Vendas -->
     <form id="formVendas" onsubmit="return submitForm(event)">

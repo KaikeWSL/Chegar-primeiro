@@ -25,16 +25,13 @@ async function salvarCadastroNoBanco(dados) {
 async function salvarManutencao(dados) {
   await pool.query(
     `INSERT INTO manutencoes 
-      (nome_empreendimento, endereco, data_inicio, data_fim, quantidade_torres, andares, aptos_por_andar, nome_sindico, engenheiro_responsavel)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      (nome_empreendimento, endereco, apartamento, bloco, nome_sindico, engenheiro_responsavel, data_registro)
+     VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
     [
       dados.nome_empreendimento,
       dados.endereco,
-      dados.data_inicio,
-      dados.data_fim,
-      dados.quantidade_torres,
-      dados.andares,
-      dados.aptos_por_andar,
+      dados.apartamento,
+      dados.bloco,
       dados.nome_sindico,
       dados.engenheiro_responsavel
     ]
@@ -100,6 +97,7 @@ app.post('/api/manutencoes', async (req, res) => {
     await salvarManutencao(req.body);
     res.status(200).json({ success: true });
   } catch (err) {
+    console.error('ERRO AO INSERIR MANUTENÇÃO:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
