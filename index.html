@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro - Chegar Primeiro</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" onclick="showTab(0)">Manutenção</div>
+      <div class="tab" onclick="showTab(1)">Vendas</div>
+    </div>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/LogoClaro2017.png" class="logo" alt="Logo Claro">
+    <h2>Chegar Primeiro</h2>
+    <!-- Formulário Vistoria -->
+    <form id="formVistoria" class="active" onsubmit="return submitForm(event)">
+      <label>Nome do empreendimento</label>
+      <input type="text" required>
+      <label>Endereço</label>
+      <input type="text" required>
+      <div class="row">
+        <div>
+          <label>Data início</label>
+          <input type="date" required>
+        </div>
+        <div>
+          <label>Data fim</label>
+          <input type="date" required>
+        </div>
+      </div>
+      <label>Quantidade de torres</label>
+      <input type="text" required>
+      <div class="row">
+        <div>
+          <label>Andares</label>
+          <input type="text" required>
+        </div>
+        <div>
+          <label>Aptos por andar</label>
+          <input type="text" required>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Nome do síndico</label>
+          <input type="text" required>
+        </div>
+        <div>
+          <label>Engenheiro responsável</label>
+          <input type="text" required>
+        </div>
+      </div>
+      <button class="submit-btn" type="submit">Subir arquivos</button>
+    </form>
+    <!-- Formulário Vendas -->
+    <form id="formVendas" onsubmit="return submitForm(event)">
+      <label>Já é cliente?</label>
+      <div class="cliente-radio-group">
+        <label><input type="radio" name="jaCliente" value="nao" checked onchange="toggleClienteCampos()"> Não</label>
+        <label><input type="radio" name="jaCliente" value="sim" onchange="toggleClienteCampos()"> Sim</label>
+      </div>
+      <div id="camposNovoCliente">
+        <label>Nome do cliente</label>
+        <input type="text" id="nomeCliente" name="nomeCliente" required>
+        <label>CPF</label>
+        <input type="text" id="cpfCliente" name="cpfCliente" required>
+        <label>CEP</label>
+        <input type="text" id="cepCliente" name="cepCliente" required>
+        <label>Endereço</label>
+        <input type="text" id="enderecoCliente" name="enderecoCliente" required>
+        <div class="row row-inline">
+          <div>
+            <label>Apartamento</label>
+            <input type="text" id="apartamentoCliente" name="apartamentoCliente" required>
+          </div>
+          <div>
+            <label>Bloco</label>
+            <input type="text" id="blocoCliente" name="blocoCliente" required>
+          </div>
+        </div>
+        <label>Nome do empreendimento</label>
+        <input type="text" id="nomeEmpreendimento" name="nomeEmpreendimento">
+        <label>Serviço contratado</label>
+        <div class="servico-contratado-row" id="servicoContratadoContainer">
+          <button type="button" class="select-service-btn" onclick="abrirModalServicos()" id="btnSelecionarServico">Selecionar serviço</button>
+        </div>
+      </div>
+      <div id="camposClienteExistente" style="display:none;">
+        <label>CPF ou Número de Contrato</label>
+        <div class="servico-contratado-row">
+          <input type="text" id="cpfContrato" name="cpfContrato">
+          <button type="button" class="select-service-btn" onclick="buscarCadastroCliente()">Buscar cadastro</button>
+        </div>
+        <div id="dadosClienteEncontrado" style="display:none; margin-top: 16px;">
+          <label>Nome completo</label>
+          <input type="text" id="nomeCompletoCliente" readonly>
+          <label>Endereço</label>
+          <input type="text" id="enderecoCompletoCliente" readonly>
+          <label>Nome do empreendimento</label>
+          <input type="text" id="empreendimentoCliente" readonly>
+          <label>Serviço atual</label>
+          <input type="text" id="servicoAtualCliente" readonly>
+          <div id="trocaServicoArea" style="margin-top: 12px;"></div>
+          <button type="button" class="select-service-btn" onclick="iniciarTrocaServico()" id="btnTrocarServico">Trocar serviço</button>
+        </div>
+      </div>
+      <button class="submit-btn" type="submit" id="btnCadastrarVendas">Cadastrar</button>
+    </form>
+    <div class="notification" id="notification">
+      Cadastro realizado! Aguardando aprovação. Prazo de resposta: 24 horas.
+    </div>
+  </div>
+  <div class="modal-servicos" id="modalServicos">
+    <div class="modal-content">
+      <span class="close-modal" onclick="fecharModalServicos()">&times;</span>
+      <div class="servicos-grid">
+        <div class="servico-card" onclick="selecionarServico('Claro fibra 350 MEGA + globoplay', window.modalServicoContexto)">
+          <div class="servico-titulo">Claro<span style='color:#ff0000'> fibra</span></div>
+          <div class="servico-mega">350 MEGA</div>
+          <div class="servico-benef">globoplay + Wi-Fi Grátis + McAfee + E-books</div>
+          <div class="servico-preco">R$ 79,90/mês</div>
+          <button type="button" class="servico-btn">Assine</button>
+        </div>
+        <div class="servico-card" onclick="selecionarServico('Claro fibra 600 MEGA + globoplay + Claro pós 60GB', window.modalServicoContexto)">
+          <div class="servico-titulo">Claro<span style='color:#ff0000'> fibra</span></div>
+          <div class="servico-mega">600 MEGA</div>
+          <div class="servico-benef">globoplay + Wi-Fi Grátis + Claro pós 60GB</div>
+          <div class="servico-preco">R$ 159,90/mês</div>
+          <button type="button" class="servico-btn">Assine</button>
+        </div>
+        <div class="servico-card" onclick="selecionarServico('Claro controle 30GB + bônus', window.modalServicoContexto)">
+          <div class="servico-titulo">Claro<span style='color:#ff0000'> controle</span></div>
+          <div class="servico-mega">30GB</div>
+          <div class="servico-benef">15GB + 5GB redes sociais + WhatsApp ilimitado + 10GB bônus</div>
+          <div class="servico-preco">R$ 59,90/mês</div>
+          <button type="button" class="servico-btn">Contrate</button>
+        </div>
+        <div class="servico-card" onclick="selecionarServico('Claro pós 50GB', window.modalServicoContexto)">
+          <div class="servico-titulo">Claro<span style='color:#ff0000'> pós</span></div>
+          <div class="servico-mega">50GB</div>
+          <div class="servico-benef">25GB + 25GB + WhatsApp ilimitado</div>
+          <div class="servico-preco">R$ 119,90/mês</div>
+          <button type="button" class="servico-btn">Contrate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html> 
