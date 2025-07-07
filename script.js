@@ -165,25 +165,101 @@ cepInput.addEventListener('blur', function() {
     });
 });
 
+// Função utilitária para mostrar mensagem na tela
+function mostrarMensagem(msg, sucesso = true) {
+  let div = document.getElementById('mensagemFeedback');
+  if (!div) {
+    div = document.createElement('div');
+    div.id = 'mensagemFeedback';
+    div.style.position = 'fixed';
+    div.style.top = '20px';
+    div.style.left = '50%';
+    div.style.transform = 'translateX(-50%)';
+    div.style.zIndex = '9999';
+    div.style.padding = '14px 24px';
+    div.style.borderRadius = '8px';
+    div.style.fontWeight = 'bold';
+    div.style.fontSize = '1.1em';
+    div.style.boxShadow = '0 2px 8px #0002';
+    document.body.appendChild(div);
+  }
+  div.textContent = msg;
+  div.style.background = sucesso ? '#d4edda' : '#f8d7da';
+  div.style.color = sucesso ? '#155724' : '#721c24';
+  div.style.border = sucesso ? '1px solid #c3e6cb' : '1px solid #f5c6cb';
+  div.style.display = 'block';
+  setTimeout(() => { div.style.display = 'none'; }, 3500);
+}
+
+// Envio do formulário de Vendas (Clientes)
 document.getElementById('formVendas').addEventListener('submit', function(e) {
-  // Só valida se for novo cliente
+  e.preventDefault();
   const isNovoCliente = document.querySelector('input[name="jaCliente"]:checked').value === 'nao';
   if (isNovoCliente) {
     const cpf = cpfInput.value;
     const cep = cepInput.value;
     let erro = false;
     if (cpf.length !== 11 || !validaCPF(cpf)) {
-      alert('Digite um CPF válido com 11 dígitos.');
+      mostrarMensagem('Digite um CPF válido com 11 dígitos.', false);
       cpfInput.focus();
       erro = true;
     }
     if (cep.length !== 8) {
-      alert('O CEP deve ter 8 dígitos.');
+      mostrarMensagem('O CEP deve ter 8 dígitos.', false);
       cepInput.focus();
       erro = true;
     }
     if (erro) {
-      e.preventDefault();
+      return;
     }
+    fetch('https://chegar-primeiro.onrender.com/api/clientes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome_cliente: document.getElementById('nomeCliente').value,
+        cpf: document.getElementById('cpfCliente').value,
+        cep: document.getElementById('cepCliente').value,
+        endereco: document.getElementById('enderecoCliente').value,
+        apartamento: document.getElementById('apartamentoCliente').value,
+        bloco: document.getElementById('blocoCliente').value,
+        nome_empreendimento: document.getElementById('nomeEmpreendimento').value,
+        servico: document.getElementById('servicoContratado') ? document.getElementById('servicoContratado').value : ''
+      })
+    })
+    .then(res => {
+      if (res.ok) {
+        mostrarMensagem('Cliente cadastrado com sucesso!');
+      } else {
+        mostrarMensagem('Erro ao cadastrar cliente!', false);
+      }
+    });
   }
+});
+
+// Envio do formulário de Manutenção (Vistoria)
+document.getElementById('formVistoria').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const inputs = document.querySelectorAll('#formVistoria input');
+  fetch('https://chegar-primeiro.onrender.com/api/manutencoes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nome_empreendimento: inputs[0].value,
+      endereco: inputs[1].value,
+      data_inicio: inputs[2].value,
+      data_fim: inputs[3].value,
+      quantidade_torres: inputs[4].value,
+      andares: inputs[5].value,
+      aptos_por_andar: inputs[6].value,
+      nome_sindico: inputs[7].value,
+      engenheiro_responsavel: inputs[8].value
+    })
+  })
+  .then(res => {
+    if (res.ok) {
+      mostrarMensagem('Manutenção cadastrada com sucesso!');
+    } else {
+      mostrarMensagem('Erro ao cadastrar manutenção!', false);
+    }
+  });
 }); 

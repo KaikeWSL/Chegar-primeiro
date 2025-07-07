@@ -1,8 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const { Pool } = require('pg');
 
 const app = express();
+app.use(cors({ origin: 'https://chegar-primeiro.netlify.app' }));
 app.use(bodyParser.json());
 
 // Configuração do banco Neon (PostgreSQL)
