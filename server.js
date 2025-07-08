@@ -9,6 +9,7 @@ app.use(cors({
   origin: ['https://chegar-primeiro.netlify.app', 'http://localhost:8888'],
   credentials: true
 }));
+app.options('*', cors());
 app.use(bodyParser.json());
 
 // Configuração do banco Neon (PostgreSQL)
