@@ -319,10 +319,11 @@ document.addEventListener('DOMContentLoaded', function() {
       mostrarMensagem('As senhas não coincidem!', false);
       return;
     }
-    fetch('https://chegar-primeiro.onrender.com/api/clientes', {
+    fetch('https://chegar-primeiro.onrender.com/api/solicitacoes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        tipo: 'novo_cliente',
         nome_cliente: document.getElementById('cadNome').value,
         cpf: document.getElementById('cadCpf').value,
         cep: document.getElementById('cadCep').value,
@@ -331,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
         apartamento: document.getElementById('cadApartamento').value,
         bloco: document.getElementById('cadBloco').value,
         nome_empreendimento: document.getElementById('cadEmpreendimento').value,
-        servico: document.getElementById('cadServico') ? document.getElementById('cadServico').value : '',
+        novo_servico: document.getElementById('cadServico') ? document.getElementById('cadServico').value : '',
         senha: senha
       })
     })
@@ -375,10 +376,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('formLogin').style.display = 'none';
     document.getElementById('formCadastro').style.display = 'none';
     document.getElementById('areaAutenticada').style.display = 'block';
-    document.getElementById('cpfLogado').textContent = 'CPF: ' + cliente.cpf;
+    // document.getElementById('cpfLogado').textContent = 'CPF: ' + cliente.cpf;
     document.getElementById('vistoriaCpf').value = cliente.cpf;
     document.getElementById('trocaCpf').value = cliente.cpf;
     document.getElementById('trocaServicoAtual').value = cliente.servico || '';
+    if (document.getElementById('vistoriaNomeCliente')) document.getElementById('vistoriaNomeCliente').value = cliente.nome_cliente;
+    if (document.getElementById('trocaNomeCliente')) document.getElementById('trocaNomeCliente').value = cliente.nome_cliente;
   }
 
   // Alternância de abas autenticadas
@@ -396,59 +399,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Envio do formulário de manutenção autenticada
   const formVistoria = document.getElementById('formVistoria');
-  formVistoria.addEventListener('submit', function(e) {
-    e.preventDefault();
-    fetch('https://chegar-primeiro.onrender.com/api/manutencoes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nome: '', // Não precisa nome aqui, só CPF
-        cpf: document.getElementById('vistoriaCpf').value,
-        cep: '',
-        endereco: '',
-        apartamento: '',
-        bloco: '',
-        telefone: document.getElementById('vistoriaTelefone').value,
-        melhor_horario: document.getElementById('vistoriaHorario').value,
-        descricao: document.getElementById('vistoriaDescricao').value
+  if (formVistoria) {
+    formVistoria.addEventListener('submit', function(e) {
+      e.preventDefault();
+      fetch('https://chegar-primeiro.onrender.com/api/solicitacoes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'manutencao',
+          nome_cliente: document.getElementById('vistoriaNomeCliente') ? document.getElementById('vistoriaNomeCliente').value : '',
+          cpf: document.getElementById('vistoriaCpf').value,
+          telefone: document.getElementById('vistoriaTelefone').value,
+          melhor_horario: document.getElementById('vistoriaHorario').value,
+          descricao: document.getElementById('vistoriaDescricao').value
+        })
       })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        mostrarMensagemProtocolo('Solicitação de manutenção enviada com sucesso!', data.protocolo);
-        formVistoria.reset();
-      } else {
-        mostrarMensagem('Erro ao enviar solicitação!', false);
-      }
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          mostrarMensagemProtocolo('Solicitação de manutenção enviada com sucesso!', data.protocolo);
+          formVistoria.reset();
+        } else {
+          mostrarMensagem('Erro ao enviar solicitação!', false);
+        }
+      });
     });
-  });
+  }
 
   // Envio do formulário de troca de serviço autenticada
   const formTroca = document.getElementById('formTrocaServico');
-  formTroca.addEventListener('submit', function(e) {
-    e.preventDefault();
-    fetch('https://chegar-primeiro.onrender.com/api/troca-servico', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nome_cliente: '',
-        cpf_ou_contrato: document.getElementById('trocaCpf').value,
-        servico_atual: document.getElementById('trocaServicoAtual').value,
-        novo_servico: document.getElementById('trocaNovoServico') ? document.getElementById('trocaNovoServico').value : ''
+  if (formTroca) {
+    formTroca.addEventListener('submit', function(e) {
+      e.preventDefault();
+      fetch('https://chegar-primeiro.onrender.com/api/solicitacoes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'troca_servico',
+          nome_cliente: document.getElementById('trocaNomeCliente') ? document.getElementById('trocaNomeCliente').value : '',
+          cpf: document.getElementById('trocaCpf').value,
+          servico_atual: document.getElementById('trocaServicoAtual').value,
+          novo_servico: document.getElementById('trocaNovoServico') ? document.getElementById('trocaNovoServico').value : ''
+        })
       })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        mostrarMensagemProtocolo('Solicitação de troca enviada com sucesso!', data.protocolo);
-        formTroca.reset();
-        removerServicoTroca();
-      } else {
-        mostrarMensagem('Erro ao solicitar troca!', false);
-      }
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          mostrarMensagemProtocolo('Solicitação de troca enviada com sucesso!', data.protocolo);
+          formTroca.reset();
+          removerServicoTroca();
+        } else {
+          mostrarMensagem('Erro ao solicitar troca!', false);
+        }
+      });
     });
-  });
+  }
 
   // Adicionar autocomplete nos campos de senha e email
   var loginSenha = document.getElementById('loginSenha');
@@ -459,4 +464,6 @@ document.addEventListener('DOMContentLoaded', function() {
   if (cadSenha2) cadSenha2.setAttribute('autocomplete', 'new-password');
   var cadEmail = document.getElementById('cadEmail');
   if (cadEmail) cadEmail.setAttribute('autocomplete', 'email');
+
+  window.showTab = showTab;
 }); 
