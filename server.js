@@ -146,4 +146,14 @@ app.post('/api/login', async (req, res) => {
 
 app.listen(3000, () => {
   console.log('Servidor rodando na porta 3000');
-}); 
+});
+
+// Keep alive para evitar hibernação do banco
+setInterval(async () => {
+  try {
+    await pool.query('SELECT 1');
+    console.log('Keep alive enviado para o banco');
+  } catch (e) {
+    console.error('Erro no keep alive:', e.message);
+  }
+}, 5 * 60 * 1000); // a cada 5 minutos 
