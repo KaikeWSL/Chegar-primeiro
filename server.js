@@ -5,7 +5,10 @@ const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 
 const app = express();
-app.use(cors({ origin: 'https://chegar-primeiro.netlify.app' }));
+app.use(cors({
+  origin: ['https://chegar-primeiro.netlify.app', 'http://localhost:8888'],
+  credentials: true
+}));
 app.use(bodyParser.json());
 
 // Configuração do banco Neon (PostgreSQL)
