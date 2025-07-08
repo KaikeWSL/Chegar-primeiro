@@ -46,8 +46,8 @@ async function salvarSolicitacao(dados) {
   // Insere na tabela solicitacoes
   const result = await pool.query(
     `INSERT INTO solicitacoes
-      (tipo, nome_cliente, cpf, cep, email, endereco, apartamento, bloco, nome_empreendimento, servico_atual, novo_servico, telefone, melhor_horario, descricao, data_registro)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW()) RETURNING id`,
+      (tipo, nome_cliente, cpf, cep, email, endereco, apartamento, bloco, nome_empreendimento, servico_atual, novo_servico, telefone, melhor_horario, descricao, data_registro, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW(),$15) RETURNING id`,
     [
       dados.tipo,
       dados.nome_cliente || null,
@@ -62,7 +62,8 @@ async function salvarSolicitacao(dados) {
       dados.novo_servico || null,
       dados.telefone || null,
       dados.melhor_horario || null,
-      dados.descricao || null
+      dados.descricao || null,
+      'Em análise'
     ]
   );
   // Se for novo cliente, insere também na tabela clientes
@@ -154,6 +155,20 @@ app.get('/api/cliente-completo/:cpf', async (req, res) => {
     const cliente = result.rows[0];
     delete cliente.senha; // Não envie a senha!
     res.status(200).json({ success: true, cliente });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Novo endpoint para buscar solicitação por protocolo (id)
+app.get('/api/solicitacao/:id', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM solicitacoes WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Solicitação não encontrada' });
+    }
+    const solicitacao = result.rows[0];
+    res.status(200).json({ success: true, solicitacao });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -22,11 +22,19 @@ window.voltarInicio = voltarInicio;
 
 document.addEventListener('DOMContentLoaded', function() {
   function showTab(idx) {
-    const forms = [document.getElementById('formVistoria'), document.getElementById('formTrocaServico')];
+    const forms = [
+      document.getElementById('formVistoria'),
+      document.getElementById('formTrocaServico'),
+      document.getElementById('acompanharSolicitacao')
+    ];
     document.querySelectorAll('.tab').forEach((tab, i) => {
       tab.classList.toggle('active', i === idx);
       forms[i].style.display = i === idx ? 'block' : 'none';
     });
+    if (idx === 2) {
+      document.getElementById('resultadoAcompanhamento').innerHTML = '';
+      document.getElementById('inputProtocolo').value = '';
+    }
     document.getElementById('notification').style.display = 'none';
   }
   function submitForm(event) {
@@ -309,6 +317,18 @@ document.addEventListener('DOMContentLoaded', function() {
     navigator.clipboard.writeText(num);
   }
 
+  // Funções para mostrar/esconder o overlay de carregamento
+  function mostrarCarregando() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'flex';
+  }
+  function esconderCarregando() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+  window.mostrarCarregando = mostrarCarregando;
+  window.esconderCarregando = esconderCarregando;
+
   // Cadastro de cliente
   const formCadastro = document.getElementById('formCadastro');
   formCadastro.addEventListener('submit', function(e) {
@@ -319,6 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
       mostrarMensagem('As senhas não coincidem!', false);
       return;
     }
+    mostrarCarregando();
     fetch('https://chegar-primeiro.onrender.com/api/solicitacoes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -338,6 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .then(res => res.json())
     .then(data => {
+      esconderCarregando();
       if (data.success) {
         mostrarMensagemProtocolo('Cadastro realizado com sucesso! Seu cadastro foi salvo no sistema. Guarde o número de protocolo para futuras consultas.', data.protocolo);
         formCadastro.reset();
@@ -348,6 +370,10 @@ document.addEventListener('DOMContentLoaded', function() {
       } else {
         mostrarMensagem('Erro ao cadastrar cliente!', false);
       }
+    })
+    .catch(() => {
+      esconderCarregando();
+      mostrarMensagem('Erro ao cadastrar cliente!', false);
     });
   });
 
@@ -355,6 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const formLogin = document.getElementById('formLogin');
   formLogin.addEventListener('submit', function(e) {
     e.preventDefault();
+    mostrarCarregando();
     fetch('https://chegar-primeiro.onrender.com/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -365,11 +392,16 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .then(res => res.json())
     .then(data => {
+      esconderCarregando();
       if (data.success) {
         autenticarCliente(data.cliente);
       } else {
         mostrarMensagem('CPF ou senha inválidos!', false);
       }
+    })
+    .catch(() => {
+      esconderCarregando();
+      mostrarMensagem('Erro ao fazer login!', false);
     });
   });
 
@@ -382,6 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('vistoriaEndereco')) document.getElementById('vistoriaEndereco').value = cliente.endereco || '';
     if (document.getElementById('vistoriaApartamento')) document.getElementById('vistoriaApartamento').value = cliente.apartamento || '';
     if (document.getElementById('vistoriaBloco')) document.getElementById('vistoriaBloco').value = cliente.bloco || '';
+    if (document.getElementById('vistoriaServicoAtual')) document.getElementById('vistoriaServicoAtual').value = cliente.servico || '';
     if (document.getElementById('vistoriaTelefone')) document.getElementById('vistoriaTelefone').value = cliente.telefone || '';
     // Troca de Serviço
     if (document.getElementById('trocaNomeCliente')) document.getElementById('trocaNomeCliente').value = cliente.nome_cliente || '';
@@ -412,14 +445,6 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(() => preencherCamposCliente(cliente));
   }
 
-  // Alternância de abas autenticadas
-  function showTab(idx) {
-    const forms = [document.getElementById('formVistoria'), document.getElementById('formTrocaServico')];
-    document.querySelectorAll('.tab').forEach((tab, i) => {
-      tab.classList.toggle('active', i === idx);
-      forms[i].style.display = i === idx ? 'block' : 'none';
-    });
-  }
   // Inicializa abas
   showTab(0);
   document.getElementById('formVistoria').style.display = 'block';
@@ -430,6 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (formVistoria) {
     formVistoria.addEventListener('submit', function(e) {
       e.preventDefault();
+      mostrarCarregando();
       fetch('https://chegar-primeiro.onrender.com/api/solicitacoes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -437,6 +463,11 @@ document.addEventListener('DOMContentLoaded', function() {
           tipo: 'manutencao',
           nome_cliente: document.getElementById('vistoriaNomeCliente') ? document.getElementById('vistoriaNomeCliente').value : '',
           cpf: document.getElementById('vistoriaCpf').value,
+          cep: document.getElementById('vistoriaCep') ? document.getElementById('vistoriaCep').value : '',
+          endereco: document.getElementById('vistoriaEndereco') ? document.getElementById('vistoriaEndereco').value : '',
+          apartamento: document.getElementById('vistoriaApartamento') ? document.getElementById('vistoriaApartamento').value : '',
+          bloco: document.getElementById('vistoriaBloco') ? document.getElementById('vistoriaBloco').value : '',
+          servico_atual: document.getElementById('vistoriaServicoAtual') ? document.getElementById('vistoriaServicoAtual').value : '',
           telefone: document.getElementById('vistoriaTelefone').value,
           melhor_horario: document.getElementById('vistoriaHorario').value,
           descricao: document.getElementById('vistoriaDescricao').value
@@ -444,12 +475,17 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .then(res => res.json())
       .then(data => {
+        esconderCarregando();
         if (data.success) {
           mostrarMensagemProtocolo('Solicitação de manutenção enviada com sucesso!', data.protocolo);
           formVistoria.reset();
         } else {
           mostrarMensagem('Erro ao enviar solicitação!', false);
         }
+      })
+      .catch(() => {
+        esconderCarregando();
+        mostrarMensagem('Erro ao enviar solicitação!', false);
       });
     });
   }
@@ -459,6 +495,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (formTroca) {
     formTroca.addEventListener('submit', function(e) {
       e.preventDefault();
+      mostrarCarregando();
       fetch('https://chegar-primeiro.onrender.com/api/solicitacoes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -472,6 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .then(res => res.json())
       .then(data => {
+        esconderCarregando();
         if (data.success) {
           mostrarMensagemProtocolo('Solicitação de troca enviada com sucesso!', data.protocolo);
           formTroca.reset();
@@ -479,6 +517,10 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
           mostrarMensagem('Erro ao solicitar troca!', false);
         }
+      })
+      .catch(() => {
+        esconderCarregando();
+        mostrarMensagem('Erro ao solicitar troca!', false);
       });
     });
   }
@@ -492,6 +534,45 @@ document.addEventListener('DOMContentLoaded', function() {
   if (cadSenha2) cadSenha2.setAttribute('autocomplete', 'new-password');
   var cadEmail = document.getElementById('cadEmail');
   if (cadEmail) cadEmail.setAttribute('autocomplete', 'email');
+
+  // Lógica para buscar solicitação pelo protocolo
+  const btnBuscarProtocolo = document.getElementById('btnBuscarProtocolo');
+  if (btnBuscarProtocolo) {
+    btnBuscarProtocolo.addEventListener('click', function() {
+      const protocolo = document.getElementById('inputProtocolo').value.trim();
+      const resultadoDiv = document.getElementById('resultadoAcompanhamento');
+      if (!protocolo) {
+        resultadoDiv.innerHTML = '<span style="color:#721c24;">Digite o número do protocolo.</span>';
+        return;
+      }
+      mostrarCarregando();
+      resultadoDiv.innerHTML = '';
+      fetch(`https://chegar-primeiro.onrender.com/api/solicitacao/${protocolo}`)
+        .then(res => res.json())
+        .then(data => {
+          esconderCarregando();
+          if (data.success && data.solicitacao) {
+            const s = data.solicitacao;
+            resultadoDiv.innerHTML = `
+              <div style='background:#eafaf1;border:1px solid #b7e4c7;padding:18px 20px;border-radius:8px;'>
+                <b>Tipo:</b> ${s.tipo || '-'}<br>
+                <b>Nome:</b> ${s.nome_cliente || '-'}<br>
+                <b>CPF:</b> ${s.cpf || '-'}<br>
+                <b>Status:</b> <span style='color:#218838;'>${s.status || 'Em análise'}</span><br>
+                <b>Descrição:</b> ${s.descricao || '-'}<br>
+                <b>Data de registro:</b> ${s.data_registro ? new Date(s.data_registro).toLocaleString('pt-BR') : '-'}
+              </div>
+            `;
+          } else {
+            resultadoDiv.innerHTML = `<span style='color:#721c24;'>Solicitação não encontrada.</span>`;
+          }
+        })
+        .catch(() => {
+          esconderCarregando();
+          resultadoDiv.innerHTML = `<span style='color:#721c24;'>Erro ao buscar solicitação.</span>`;
+        });
+    });
+  }
 
   window.showTab = showTab;
 });
