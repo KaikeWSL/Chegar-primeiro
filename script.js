@@ -335,8 +335,18 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
     const senha = document.getElementById('cadSenha').value;
     const senha2 = document.getElementById('cadSenha2').value;
+    const cpf = document.getElementById('cadCpf').value;
+    const cep = document.getElementById('cadCep').value;
     if (senha !== senha2) {
       mostrarMensagem('As senhas não coincidem!', false);
+      return;
+    }
+    if (cpf.length !== 11 || !validaCPF(cpf)) {
+      mostrarMensagem('CPF inválido!', false);
+      return;
+    }
+    if (cep.length !== 8) {
+      mostrarMensagem('CEP inválido! O CEP deve ter 8 dígitos.', false);
       return;
     }
     mostrarCarregando();
@@ -361,7 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(data => {
       esconderCarregando();
       if (data.success) {
-        mostrarMensagemProtocolo('Cadastro realizado com sucesso! Seu cadastro foi salvo no sistema. Guarde o número de protocolo para futuras consultas.', data.protocolo);
+        mostrarMensagemProtocolo('Cadastro realizado com sucesso! Seu pedido está em análise. Guarde o número de protocolo para acompanhar a solicitação.', data.protocolo);
         formCadastro.reset();
         voltarInicio();
       } else if (data.motivo === 'ja_existe') {
@@ -470,7 +480,8 @@ document.addEventListener('DOMContentLoaded', function() {
           servico_atual: document.getElementById('vistoriaServicoAtual') ? document.getElementById('vistoriaServicoAtual').value : '',
           telefone: document.getElementById('vistoriaTelefone').value,
           melhor_horario: document.getElementById('vistoriaHorario').value,
-          descricao: document.getElementById('vistoriaDescricao').value
+          descricao: document.getElementById('vistoriaDescricao').value,
+          nome_empreendimento: document.getElementById('vistoriaEmpreendimento') ? document.getElementById('vistoriaEmpreendimento').value : ''
         })
       })
       .then(res => res.json())
@@ -504,7 +515,8 @@ document.addEventListener('DOMContentLoaded', function() {
           nome_cliente: document.getElementById('trocaNomeCliente') ? document.getElementById('trocaNomeCliente').value : '',
           cpf: document.getElementById('trocaCpf').value,
           servico_atual: document.getElementById('trocaServicoAtual').value,
-          novo_servico: document.getElementById('trocaNovoServico') ? document.getElementById('trocaNovoServico').value : ''
+          novo_servico: document.getElementById('trocaNovoServico') ? document.getElementById('trocaNovoServico').value : '',
+          nome_empreendimento: document.getElementById('trocaEmpreendimento') ? document.getElementById('trocaEmpreendimento').value : ''
         })
       })
       .then(res => res.json())
@@ -555,12 +567,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const s = data.solicitacao;
             resultadoDiv.innerHTML = `
               <div style='background:#eafaf1;border:1px solid #b7e4c7;padding:18px 20px;border-radius:8px;'>
-                <b>Tipo:</b> ${s.tipo || '-'}<br>
-                <b>Nome:</b> ${s.nome_cliente || '-'}<br>
-                <b>CPF:</b> ${s.cpf || '-'}<br>
-                <b>Status:</b> <span style='color:#218838;'>${s.status || 'Em análise'}</span><br>
-                <b>Descrição:</b> ${s.descricao || '-'}<br>
-                <b>Data de registro:</b> ${s.data_registro ? new Date(s.data_registro).toLocaleString('pt-BR') : '-'}
+                <div style='margin-bottom:6px;'><span style='font-weight:bold;color:#155724;'>Tipo:</span> <span style='color:#222;'>${s.tipo || '-'}</span></div>
+                <div style='margin-bottom:6px;'><span style='font-weight:bold;color:#155724;'>Nome:</span> <span style='color:#222;'>${s.nome_cliente || '-'}</span></div>
+                <div style='margin-bottom:6px;'><span style='font-weight:bold;color:#155724;'>Status:</span> <span style='color:#218838;font-weight:bold;'>${s.status || 'Em análise'}</span></div>
+                <div style='margin-bottom:6px;'><span style='font-weight:bold;color:#155724;'>Descrição:</span> <span style='color:#222;'>${s.descricao || '-'}</span></div>
+                <div><span style='font-weight:bold;color:#155724;'>Data de registro:</span> <span style='color:#222;'>${s.data_registro ? new Date(s.data_registro).toLocaleString('pt-BR') : '-'}</span></div>
               </div>
             `;
           } else {
@@ -573,6 +584,174 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
   }
+
+  // Proteção para campos antigos que podem não existir mais
+  // --- Validação de CPF e CEP no cadastro ---
+  const cadCpfInput = document.getElementById('cadCpf');
+  if (cadCpfInput) {
+    cadCpfInput.addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '');
+      if (this.value.length > 11) this.value = this.value.slice(0, 11);
+    });
+    cadCpfInput.addEventListener('blur', function() {
+      if (this.value.length !== 11) {
+        alert('O CPF deve ter 11 dígitos.');
+        return;
+      }
+      if (!validaCPF(this.value)) {
+        alert('CPF inválido!');
+      }
+    });
+  }
+
+  const cadCepInput = document.getElementById('cadCep');
+  if (cadCepInput) {
+    let cadCepErroFlag = false;
+    cadCepInput.addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '');
+      if (this.value.length > 8) this.value = this.value.slice(0, 8);
+      cadCepErroFlag = false;
+    });
+    cadCepInput.addEventListener('blur', function() {
+      if (this.value.length !== 8) {
+        if (!cadCepErroFlag) {
+          alert('O CEP deve ter 8 dígitos.');
+          cadCepErroFlag = true;
+        }
+        return;
+      }
+      cadCepErroFlag = false;
+      // Busca endereço se válido
+      const cep = this.value;
+      fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        .then(response => response.json())
+        .then(data => {
+          if (!data.erro) {
+            const cadEndereco = document.getElementById('cadEndereco');
+            if (cadEndereco) cadEndereco.value = `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`;
+          } else {
+            if (!cadCepErroFlag) {
+              alert('CEP não encontrado.');
+              cadCepErroFlag = true;
+            }
+            const cadEndereco = document.getElementById('cadEndereco');
+            if (cadEndereco) cadEndereco.value = '';
+          }
+        })
+        .catch(() => {
+          if (!cadCepErroFlag) {
+            alert('Erro ao buscar o CEP.');
+            cadCepErroFlag = true;
+          }
+          const cadEndereco = document.getElementById('cadEndereco');
+          if (cadEndereco) cadEndereco.value = '';
+        });
+    });
+  }
+
+  // --- Verificação de e-mail no cadastro ---
+  let emailVerificado = false;
+  const btnVerificarEmail = document.getElementById('btnVerificarEmail');
+  const btnValidarCodigoEmail = document.getElementById('btnValidarCodigoEmail');
+  const areaCodigoEmail = document.getElementById('areaCodigoEmail');
+  const statusCodigoEmail = document.getElementById('statusCodigoEmail');
+  const inputCodigoEmail = document.getElementById('inputCodigoEmail');
+  const cadEmailInput = document.getElementById('cadEmail');
+
+  if (btnVerificarEmail && cadEmailInput) {
+    btnVerificarEmail.addEventListener('click', function() {
+      const email = cadEmailInput.value.trim();
+      if (!email) {
+        statusCodigoEmail.textContent = 'Digite o e-mail.';
+        statusCodigoEmail.style.color = '#721c24';
+        areaCodigoEmail.style.display = 'block';
+        return;
+      }
+      mostrarCarregando();
+      fetch('https://chegar-primeiro.onrender.com/api/enviar-codigo-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      .then(res => res.json())
+      .then(data => {
+        esconderCarregando();
+        if (data.success) {
+          areaCodigoEmail.style.display = 'block';
+          statusCodigoEmail.textContent = 'Código enviado! Confira seu e-mail.';
+          statusCodigoEmail.style.color = '#218838';
+          emailVerificado = false;
+        } else {
+          statusCodigoEmail.textContent = 'Erro ao enviar código.';
+          statusCodigoEmail.style.color = '#721c24';
+        }
+      })
+      .catch(() => {
+        esconderCarregando();
+        statusCodigoEmail.textContent = 'Erro ao enviar código.';
+        statusCodigoEmail.style.color = '#721c24';
+      });
+    });
+  }
+
+  if (btnValidarCodigoEmail && cadEmailInput) {
+    btnValidarCodigoEmail.addEventListener('click', function() {
+      const email = cadEmailInput.value.trim();
+      const codigo = inputCodigoEmail.value.trim();
+      if (!codigo || codigo.length !== 6) {
+        statusCodigoEmail.textContent = 'Digite o código de 6 dígitos.';
+        statusCodigoEmail.style.color = '#721c24';
+        return;
+      }
+      mostrarCarregando();
+      fetch('https://chegar-primeiro.onrender.com/api/validar-codigo-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, codigo })
+      })
+      .then(res => res.json())
+      .then(data => {
+        esconderCarregando();
+        if (data.success) {
+          statusCodigoEmail.textContent = 'E-mail verificado!';
+          statusCodigoEmail.style.color = '#218838';
+          emailVerificado = true;
+        } else {
+          statusCodigoEmail.textContent = 'Código inválido.';
+          statusCodigoEmail.style.color = '#721c24';
+          emailVerificado = false;
+        }
+      })
+      .catch(() => {
+        esconderCarregando();
+        statusCodigoEmail.textContent = 'Erro ao validar código.';
+        statusCodigoEmail.style.color = '#721c24';
+        emailVerificado = false;
+      });
+    });
+  }
+
+  if (btnVerificarEmail && cadEmailInput) {
+    cadEmailInput.addEventListener('input', function() {
+      // Regex simples para e-mail válido
+      const emailValido = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.value.trim());
+      btnVerificarEmail.style.display = emailValido ? 'block' : 'none';
+      // Ao alterar o e-mail, reseta status de verificação
+      emailVerificado = false;
+      areaCodigoEmail.style.display = 'none';
+      statusCodigoEmail.textContent = '';
+    });
+  }
+
+  // Bloquear cadastro se e-mail não for verificado
+  formCadastro.addEventListener('submit', function(e) {
+    // ... já existe validação de senha, cpf, cep ...
+    if (!emailVerificado) {
+      mostrarMensagem('Você precisa verificar seu e-mail antes de cadastrar!', false);
+      return;
+    }
+    // ... resto do código ...
+  });
 
   window.showTab = showTab;
 });

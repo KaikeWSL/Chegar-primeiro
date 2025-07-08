@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
 
 const app = express();
 app.use(cors({
@@ -16,6 +17,18 @@ app.use(bodyParser.json());
 const pool = new Pool({
   connectionString: 'postgresql://neondb_owner:npg_G43vPwgWaRkh@ep-empty-snow-acqkbuow-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
   // Substitua pelos seus dados do Neon
+});
+
+// Armazenamento temporário dos códigos de verificação (em memória)
+const codigosVerificacao = {};
+
+// Configuração do transporter (ajuste para seu provedor de e-mail)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
 });
 
 async function salvarCadastroNoBanco(dados) {
@@ -172,6 +185,39 @@ app.get('/api/solicitacao/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// Endpoint para enviar código de verificação
+app.post('/api/enviar-codigo-email', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ success: false, error: 'E-mail não informado' });
+  // Gera código de 6 dígitos
+  const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+  codigosVerificacao[email] = codigo;
+  // Envia o e-mail
+  try {
+    await transporter.sendMail({
+      from: `Chegar Primeiro <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Código de verificação',
+      text: `Seu código de verificação é: ${codigo}`,
+      html: `<p>Seu código de verificação é: <b>${codigo}</b></p>`
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Erro ao enviar e-mail' });
+  }
+});
+
+// Endpoint para validar código de verificação
+app.post('/api/validar-codigo-email', (req, res) => {
+  const { email, codigo } = req.body;
+  if (!email || !codigo) return res.status(400).json({ success: false, error: 'Dados incompletos' });
+  if (codigosVerificacao[email] && codigosVerificacao[email] === codigo) {
+    delete codigosVerificacao[email]; // Remove após uso
+    return res.json({ success: true });
+  }
+  res.json({ success: false, error: 'Código inválido' });
 });
 
 app.listen(3000, () => {

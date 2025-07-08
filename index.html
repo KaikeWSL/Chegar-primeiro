@@ -36,6 +36,13 @@
       <input type="text" id="cadCep" required>
       <label>Email</label>
       <input type="email" id="cadEmail" required>
+      <button type="button" id="btnVerificarEmail" class="submit-btn" style="padding:6px 14px;font-size:0.95em;display:none;margin-top:6px;">Verificar e-mail</button>
+      <div id="areaCodigoEmail" style="display:none;margin:8px 0 0 0;">
+        <label for="inputCodigoEmail" style="font-size:0.97em;">Digite o código recebido no e-mail:</label>
+        <input type="text" id="inputCodigoEmail" maxlength="6" style="width:140px;">
+        <button type="button" id="btnValidarCodigoEmail" class="submit-btn" style="padding:6px 14px;font-size:0.95em;">Validar código</button>
+        <span id="statusCodigoEmail" style="margin-left:10px;font-size:0.97em;"></span>
+      </div>
       <label>Endereço</label>
       <input type="text" id="cadEndereco" required>
       <div class="row">
@@ -114,9 +121,9 @@
       <div id="acompanharSolicitacao" style="display:none; margin-top:24px;">
         <h3>Acompanhar Solicitação</h3>
         <label for="inputProtocolo">Digite o número do protocolo:</label>
-        <div style="display:flex;gap:12px;align-items:center;max-width:350px;">
-          <input type="text" id="inputProtocolo" style="flex:1;" placeholder="Número do protocolo">
-          <button type="button" class="submit-btn" id="btnBuscarProtocolo">Buscar</button>
+        <div style="display:flex;flex-direction:column;align-items:flex-start;max-width:350px;gap:10px;">
+          <input type="text" id="inputProtocolo" style="width:100%;" placeholder="Número do protocolo">
+          <button type="button" class="submit-btn" id="btnBuscarProtocolo" style="align-self:flex-end;">Buscar</button>
         </div>
         <div id="resultadoAcompanhamento" style="margin-top:18px;"></div>
       </div>
