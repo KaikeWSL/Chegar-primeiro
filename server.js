@@ -39,6 +39,20 @@ async function salvarCadastroNoBanco(dados) {
   );
 }
 
+// Função para gerar protocolo único com ano, mês, dia, hora, minuto e segundo
+function gerarProtocolo() {
+  const now = new Date();
+  const pad = n => n.toString().padStart(2, '0');
+  return (
+    now.getFullYear().toString() +
+    pad(now.getMonth() + 1) +
+    pad(now.getDate()) +
+    pad(now.getHours()) +
+    pad(now.getMinutes()) +
+    pad(now.getSeconds())
+  );
+}
+
 // Função para inserir solicitação genérica
 async function salvarSolicitacao(dados) {
   let senhaHash = null;
@@ -56,11 +70,13 @@ async function salvarSolicitacao(dados) {
       return { jaExiste: true };
     }
   }
+  // Gera protocolo único
+  const protocolo = gerarProtocolo();
   // Insere na tabela solicitacoes
   const result = await pool.query(
     `INSERT INTO solicitacoes
-      (tipo, nome_cliente, cpf, cep, email, endereco, apartamento, bloco, nome_empreendimento, servico_atual, novo_servico, telefone, melhor_horario, descricao, data_registro, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW(),$15) RETURNING id`,
+      (tipo, nome_cliente, cpf, cep, email, endereco, apartamento, bloco, nome_empreendimento, servico_atual, novo_servico, telefone, melhor_horario, descricao, data_registro, status, protocolo)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW(),$15,$16) RETURNING id`,
     [
       dados.tipo,
       dados.nome_cliente || null,
@@ -76,7 +92,8 @@ async function salvarSolicitacao(dados) {
       dados.telefone || null,
       dados.melhor_horario || null,
       dados.descricao || null,
-      'Em análise'
+      'Em análise',
+      protocolo
     ]
   );
   // Se for novo cliente, insere também na tabela clientes
@@ -99,7 +116,22 @@ async function salvarSolicitacao(dados) {
       ]
     );
   }
-  return result.rows[0].id;
+  // Envia o protocolo por e-mail, se houver e-mail
+  if (dados.email) {
+    try {
+      await transporter.sendMail({
+        from: `Chegar Primeiro <${process.env.EMAIL_USER}>`,
+        to: dados.email,
+        subject: 'Protocolo da sua solicitação',
+        text: `Sua solicitação foi registrada com sucesso!\nProtocolo: ${protocolo}`,
+        html: `<p>Sua solicitação foi registrada com sucesso!<br>Protocolo: <b>${protocolo}</b></p>`
+      });
+    } catch (err) {
+      // Não impede o fluxo, apenas loga o erro
+      console.error('Erro ao enviar e-mail de protocolo:', err.message);
+    }
+  }
+  return protocolo;
 }
 
 // Função para buscar cliente (novo_cliente) por CPF
@@ -173,10 +205,10 @@ app.get('/api/cliente-completo/:cpf', async (req, res) => {
   }
 });
 
-// Novo endpoint para buscar solicitação por protocolo (id)
-app.get('/api/solicitacao/:id', async (req, res) => {
+// Novo endpoint para buscar solicitação por protocolo (protocolo)
+app.get('/api/solicitacao/:protocolo', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM solicitacoes WHERE id = $1', [req.params.id]);
+    const result = await pool.query('SELECT * FROM solicitacoes WHERE protocolo = $1', [req.params.protocolo]);
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Solicitação não encontrada' });
     }

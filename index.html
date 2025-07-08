@@ -35,7 +35,10 @@
       <label>CEP</label>
       <input type="text" id="cadCep" required>
       <label>Email</label>
-      <input type="email" id="cadEmail" required>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="email" id="cadEmail" required>
+        <span id="iconeEmailVerificado" style="display:none;font-size:1.5em;color:#218838;">✔️</span>
+      </div>
       <button type="button" id="btnVerificarEmail" class="submit-btn" style="padding:6px 14px;font-size:0.95em;display:none;margin-top:6px;">Verificar e-mail</button>
       <div id="areaCodigoEmail" style="display:none;margin:8px 0 0 0;">
         <label for="inputCodigoEmail" style="font-size:0.97em;">Digite o código recebido no e-mail:</label>

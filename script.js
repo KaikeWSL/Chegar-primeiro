@@ -304,12 +304,24 @@ document.addEventListener('DOMContentLoaded', function() {
       div.style.boxShadow = '0 2px 8px #0002';
       document.body.appendChild(div);
     }
-    div.innerHTML = `${msg}<br><span style='font-size:0.95em;'>Protocolo: <b id='protocoloNum'>${protocolo}</b> <button onclick='copiarProtocolo()' style='margin-left:8px;padding:2px 8px;font-size:0.95em;cursor:pointer;'>Copiar</button></span>`;
+    div.innerHTML = `${msg}<br><span style='font-size:0.95em;'>Protocolo: <b id='protocoloNum'>${protocolo}</b> <button onclick='copiarProtocolo()' class='btn-copiar-protocolo'>Copiar</button></span>`;
     div.style.background = '#d4edda';
     div.style.color = '#155724';
     div.style.border = '1px solid #c3e6cb';
     div.style.display = 'block';
     setTimeout(() => { div.style.display = 'none'; }, 10000);
+    // Notificação web
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        new Notification('Protocolo gerado', { body: `Seu protocolo é: ${protocolo}` });
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            new Notification('Protocolo gerado', { body: `Seu protocolo é: ${protocolo}` });
+          }
+        });
+      }
+    }
   }
 
   window.copiarProtocolo = function() {
@@ -657,6 +669,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const statusCodigoEmail = document.getElementById('statusCodigoEmail');
   const inputCodigoEmail = document.getElementById('inputCodigoEmail');
   const cadEmailInput = document.getElementById('cadEmail');
+  const iconeEmailVerificado = document.getElementById('iconeEmailVerificado');
 
   if (btnVerificarEmail && cadEmailInput) {
     btnVerificarEmail.addEventListener('click', function() {
@@ -681,6 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
           statusCodigoEmail.textContent = 'Código enviado! Confira seu e-mail.';
           statusCodigoEmail.style.color = '#218838';
           emailVerificado = false;
+          if (iconeEmailVerificado) iconeEmailVerificado.style.display = 'none';
         } else {
           statusCodigoEmail.textContent = 'Erro ao enviar código.';
           statusCodigoEmail.style.color = '#721c24';
@@ -716,10 +730,16 @@ document.addEventListener('DOMContentLoaded', function() {
           statusCodigoEmail.textContent = 'E-mail verificado!';
           statusCodigoEmail.style.color = '#218838';
           emailVerificado = true;
+          areaCodigoEmail.style.display = 'none';
+          btnVerificarEmail.style.display = 'none';
+          if (iconeEmailVerificado) iconeEmailVerificado.style.display = 'inline';
         } else {
           statusCodigoEmail.textContent = 'Código inválido.';
           statusCodigoEmail.style.color = '#721c24';
           emailVerificado = false;
+          areaCodigoEmail.style.display = 'none';
+          statusCodigoEmail.textContent = '';
+          if (iconeEmailVerificado) iconeEmailVerificado.style.display = 'none';
         }
       })
       .catch(() => {
@@ -727,6 +747,9 @@ document.addEventListener('DOMContentLoaded', function() {
         statusCodigoEmail.textContent = 'Erro ao validar código.';
         statusCodigoEmail.style.color = '#721c24';
         emailVerificado = false;
+        areaCodigoEmail.style.display = 'none';
+        statusCodigoEmail.textContent = '';
+        if (iconeEmailVerificado) iconeEmailVerificado.style.display = 'none';
       });
     });
   }
@@ -740,6 +763,7 @@ document.addEventListener('DOMContentLoaded', function() {
       emailVerificado = false;
       areaCodigoEmail.style.display = 'none';
       statusCodigoEmail.textContent = '';
+      if (iconeEmailVerificado) iconeEmailVerificado.style.display = 'none';
     });
   }
 
