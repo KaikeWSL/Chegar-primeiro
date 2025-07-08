@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const formLogin = document.getElementById('formLogin');
   formLogin.addEventListener('submit', function(e) {
     e.preventDefault();
-    fetch('https://chegar-primeiro.onrender.com/api/login', {
+    fetch('https://chegar-primeiro.onrender.com', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
