@@ -342,6 +342,9 @@ document.addEventListener('DOMContentLoaded', function() {
         mostrarMensagemProtocolo('Cadastro realizado com sucesso! Seu cadastro foi salvo no sistema. Guarde o número de protocolo para futuras consultas.', data.protocolo);
         formCadastro.reset();
         voltarInicio();
+      } else if (data.motivo === 'ja_existe') {
+        mostrarMensagem('Já existe um cadastro com este CPF ou Email. Faça login para acessar.');
+        mostrarLogin();
       } else {
         mostrarMensagem('Erro ao cadastrar cliente!', false);
       }
@@ -466,4 +469,36 @@ document.addEventListener('DOMContentLoaded', function() {
   if (cadEmail) cadEmail.setAttribute('autocomplete', 'email');
 
   window.showTab = showTab;
-}); 
+});
+
+function mostrarMensagem(msg, sucesso = true) {
+  let div = document.getElementById('mensagemFeedback');
+  if (!div) {
+    div = document.createElement('div');
+    div.id = 'mensagemFeedback';
+    div.style.position = 'fixed';
+    div.style.top = '20px';
+    div.style.left = '50%';
+    div.style.transform = 'translateX(-50%)';
+    div.style.zIndex = '9999';
+    div.style.padding = '14px 24px';
+    div.style.borderRadius = '8px';
+    div.style.fontWeight = 'bold';
+    div.style.fontSize = '1.1em';
+    div.style.boxShadow = '0 2px 8px #0002';
+    document.body.appendChild(div);
+  }
+  div.innerHTML = msg;
+  if (sucesso) {
+    div.style.background = '#d4edda';
+    div.style.color = '#155724';
+    div.style.border = '1px solid #c3e6cb';
+  } else {
+    div.style.background = '#f8d7da';
+    div.style.color = '#721c24';
+    div.style.border = '1px solid #f5c6cb';
+  }
+  div.style.display = 'block';
+  setTimeout(() => { div.style.display = 'none'; }, 6000);
+}
+window.mostrarMensagem = mostrarMensagem; 

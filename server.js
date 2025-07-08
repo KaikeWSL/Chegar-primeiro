@@ -32,10 +32,22 @@ async function salvarSolicitacao(dados) {
   if (dados.tipo === 'novo_cliente' && dados.senha) {
     senhaHash = await bcrypt.hash(dados.senha, 10);
   }
+  // Se for novo cliente, verifica duplicidade antes de inserir na tabela clientes
+  if (dados.tipo === 'novo_cliente') {
+    const existe = await pool.query(
+      'SELECT 1 FROM clientes WHERE cpf = $1 OR email = $2',
+      [dados.cpf, dados.email]
+    );
+    if (existe.rows.length > 0) {
+      // Não cadastra, retorna erro específico
+      return { jaExiste: true };
+    }
+  }
+  // Insere na tabela solicitacoes
   const result = await pool.query(
     `INSERT INTO solicitacoes
-      (tipo, nome_cliente, cpf, cep, email, endereco, apartamento, bloco, nome_empreendimento, servico_atual, novo_servico, telefone, melhor_horario, descricao, senha, data_registro)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW()) RETURNING id`,
+      (tipo, nome_cliente, cpf, cep, email, endereco, apartamento, bloco, nome_empreendimento, servico_atual, novo_servico, telefone, melhor_horario, descricao, data_registro)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW()) RETURNING id`,
     [
       dados.tipo,
       dados.nome_cliente || null,
@@ -50,8 +62,7 @@ async function salvarSolicitacao(dados) {
       dados.novo_servico || null,
       dados.telefone || null,
       dados.melhor_horario || null,
-      dados.descricao || null,
-      senhaHash
+      dados.descricao || null
     ]
   );
   // Se for novo cliente, insere também na tabela clientes
@@ -89,8 +100,11 @@ async function buscarClientePorCPF(cpf) {
 // Rota única para inserir qualquer solicitação
 app.post('/api/solicitacoes', async (req, res) => {
   try {
-    const protocolo = await salvarSolicitacao(req.body);
-    res.status(200).json({ success: true, protocolo });
+    const resultado = await salvarSolicitacao(req.body);
+    if (resultado && resultado.jaExiste) {
+      return res.status(200).json({ success: false, motivo: 'ja_existe' });
+    }
+    res.status(200).json({ success: true, protocolo: resultado });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
