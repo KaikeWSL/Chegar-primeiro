@@ -373,18 +373,43 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Função para autenticar e exibir área autenticada
+  // Função para preencher os campos dos formulários com os dados do cliente
+  function preencherCamposCliente(cliente) {
+    // Manutenção
+    if (document.getElementById('vistoriaNomeCliente')) document.getElementById('vistoriaNomeCliente').value = cliente.nome_cliente || '';
+    if (document.getElementById('vistoriaCpf')) document.getElementById('vistoriaCpf').value = cliente.cpf || '';
+    if (document.getElementById('vistoriaCep')) document.getElementById('vistoriaCep').value = cliente.cep || '';
+    if (document.getElementById('vistoriaEndereco')) document.getElementById('vistoriaEndereco').value = cliente.endereco || '';
+    if (document.getElementById('vistoriaApartamento')) document.getElementById('vistoriaApartamento').value = cliente.apartamento || '';
+    if (document.getElementById('vistoriaBloco')) document.getElementById('vistoriaBloco').value = cliente.bloco || '';
+    if (document.getElementById('vistoriaTelefone')) document.getElementById('vistoriaTelefone').value = cliente.telefone || '';
+    // Troca de Serviço
+    if (document.getElementById('trocaNomeCliente')) document.getElementById('trocaNomeCliente').value = cliente.nome_cliente || '';
+    if (document.getElementById('trocaCpf')) document.getElementById('trocaCpf').value = cliente.cpf || '';
+    if (document.getElementById('trocaEndereco')) document.getElementById('trocaEndereco').value = cliente.endereco || '';
+    if (document.getElementById('trocaApartamento')) document.getElementById('trocaApartamento').value = cliente.apartamento || '';
+    if (document.getElementById('trocaBloco')) document.getElementById('trocaBloco').value = cliente.bloco || '';
+    if (document.getElementById('trocaServicoAtual')) document.getElementById('trocaServicoAtual').value = cliente.servico || '';
+  }
+
+  // Modificar autenticarCliente para buscar e preencher os dados completos
   function autenticarCliente(cliente) {
     document.getElementById('telaInicial').style.display = 'none';
     document.getElementById('formLogin').style.display = 'none';
     document.getElementById('formCadastro').style.display = 'none';
     document.getElementById('areaAutenticada').style.display = 'block';
-    // document.getElementById('cpfLogado').textContent = 'CPF: ' + cliente.cpf;
-    document.getElementById('vistoriaCpf').value = cliente.cpf;
-    document.getElementById('trocaCpf').value = cliente.cpf;
-    document.getElementById('trocaServicoAtual').value = cliente.servico || '';
-    if (document.getElementById('vistoriaNomeCliente')) document.getElementById('vistoriaNomeCliente').value = cliente.nome_cliente;
-    if (document.getElementById('trocaNomeCliente')) document.getElementById('trocaNomeCliente').value = cliente.nome_cliente;
+
+    // Buscar dados completos do cliente e preencher os campos
+    fetch(`https://chegar-primeiro.onrender.com/api/cliente-completo/${cliente.cpf}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          preencherCamposCliente(data.cliente);
+        } else {
+          preencherCamposCliente(cliente); // fallback para dados básicos
+        }
+      })
+      .catch(() => preencherCamposCliente(cliente));
   }
 
   // Alternância de abas autenticadas

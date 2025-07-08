@@ -144,16 +144,21 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('Servidor rodando na porta 3000');
+// Novo endpoint para buscar dados completos do cliente por CPF
+app.get('/api/cliente-completo/:cpf', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM clientes WHERE cpf = $1', [req.params.cpf]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Cliente não encontrado' });
+    }
+    const cliente = result.rows[0];
+    delete cliente.senha; // Não envie a senha!
+    res.status(200).json({ success: true, cliente });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-// Keep alive para evitar hibernação do banco
-setInterval(async () => {
-  try {
-    await pool.query('SELECT 1');
-    console.log('Keep alive enviado para o banco');
-  } catch (e) {
-    console.error('Erro no keep alive:', e.message);
-  }
-}, 5 * 60 * 1000); // a cada 5 minutos 
+app.listen(3000, () => {
+  console.log('Servidor rodando na porta 3000');
+}); 

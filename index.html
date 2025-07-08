@@ -68,22 +68,38 @@
       </div>
       <form id="formVistoria" class="active">
         <h3>Solicitar Manutenção</h3>
+        <label>Nome</label>
+        <input type="text" id="vistoriaNomeCliente">
         <label>CPF</label>
         <input type="text" id="vistoriaCpf" readonly>
-        <input type="hidden" id="vistoriaNomeCliente">
+        <label>CEP</label>
+        <input type="text" id="vistoriaCep">
+        <label>Endereço</label>
+        <input type="text" id="vistoriaEndereco">
+        <label>Apartamento</label>
+        <input type="text" id="vistoriaApartamento">
+        <label>Bloco</label>
+        <input type="text" id="vistoriaBloco">
+        <label>Telefone de contato</label>
+        <input type="text" id="vistoriaTelefone">
         <label>Descrição do problema</label>
         <input type="text" id="vistoriaDescricao" required>
-        <label>Telefone de contato</label>
-        <input type="text" id="vistoriaTelefone" required>
         <label>Melhor horário de contato</label>
-        <input type="time" id="vistoriaHorario" required>
+        <input type="time" id="vistoriaHorario">
         <button class="submit-btn" type="submit">Enviar</button>
       </form>
       <form id="formTrocaServico">
         <h3>Troca de Serviço</h3>
+        <label>Nome</label>
+        <input type="text" id="trocaNomeCliente">
         <label>CPF</label>
         <input type="text" id="trocaCpf" readonly>
-        <input type="hidden" id="trocaNomeCliente">
+        <label>Endereço</label>
+        <input type="text" id="trocaEndereco">
+        <label>Apartamento</label>
+        <input type="text" id="trocaApartamento">
+        <label>Bloco</label>
+        <input type="text" id="trocaBloco">
         <label>Serviço atual</label>
         <input type="text" id="trocaServicoAtual" readonly>
         <label>Novo serviço</label>
