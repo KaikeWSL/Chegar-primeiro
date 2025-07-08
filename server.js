@@ -128,7 +128,7 @@ app.get('/api/clientes/:cpf', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   const { cpf, senha } = req.body;
   try {
-    const result = await pool.query('SELECT * FROM solicitacoes WHERE cpf = $1 AND tipo = $2', [cpf, 'novo_cliente']);
+    const result = await pool.query('SELECT * FROM clientes WHERE cpf = $1', [cpf]);
     if (result.rows.length === 0) {
       return res.status(401).json({ success: false, error: 'CPF ou senha inválidos' });
     }
