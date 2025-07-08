@@ -1,9 +1,8 @@
 function showTab(idx) {
+  const forms = [document.getElementById('formVistoria'), document.getElementById('formTrocaServico')];
   document.querySelectorAll('.tab').forEach((tab, i) => {
     tab.classList.toggle('active', i === idx);
-  });
-  document.querySelectorAll('form').forEach((form, i) => {
-    form.classList.toggle('active', i === idx);
+    forms[i].style.display = i === idx ? 'block' : 'none';
   });
   document.getElementById('notification').style.display = 'none';
 }
@@ -17,41 +16,41 @@ function submitForm(event) {
 }
 function abrirModalServicos(contexto) {
   document.getElementById('modalServicos').classList.add('active');
-  // Salva contexto para saber se é troca de serviço de cliente existente
   window.modalServicoContexto = contexto || null;
 }
 function fecharModalServicos() {
   document.getElementById('modalServicos').classList.remove('active');
 }
 function selecionarServico(nome, contexto) {
-  if (contexto === 'clienteExistente') {
-    document.getElementById('trocaServicoArea').innerHTML = `
-      <label style=\"margin-bottom:4px;\"><b>Novo Serviço</b></label>
-      <div class=\"servico-contratado-row\">
-        <input type=\"text\" value=\"${nome}\" readonly style=\"flex:1; min-width:0;\">
-        <button type=\"button\" class=\"remove-servico-btn\" onclick=\"removerTrocaServico()\">&times;</button>
+  if (contexto === 'cadastro') {
+    document.getElementById('cadServicoContainer').innerHTML = `
+      <div class="servico-contratado-row">
+        <input type="text" id="cadServico" name="cadServico" value="${nome}" readonly style="flex:1; min-width:0;">
+        <button type="button" class="remove-servico-btn" onclick="removerServicoCadastro()">&times;</button>
       </div>
-      <button type=\"button\" class=\"submit-btn\" style=\"margin-top:12px;\" onclick=\"enviarSolicitacaoTroca()\">Enviar solicitação</button>
-      <div id=\"solicitacaoMsg\"></div>
     `;
-    document.getElementById('btnTrocarServico').style.display = 'none';
     fecharModalServicos();
     return;
   }
-  // fluxo padrão para novo cliente
-  const container = document.getElementById('servicoContratadoContainer');
-  container.innerHTML = `
-    <div class=\"servico-contratado-row\">
-      <input type=\"text\" id=\"servicoContratado\" name=\"servicoContratado\" value=\"${nome}\" readonly style=\"flex:1; min-width:0;\">
-      <button type=\"button\" class=\"remove-servico-btn\" onclick=\"removerServicoSelecionado()\">&times;</button>
-    </div>
-  `;
-  fecharModalServicos();
+  if (contexto === 'troca') {
+    document.getElementById('trocaServicoContainer').innerHTML = `
+      <div class="servico-contratado-row">
+        <input type="text" id="trocaNovoServico" value="${nome}" readonly style="flex:1; min-width:0;">
+        <button type="button" class="remove-servico-btn" onclick="removerServicoTroca()">&times;</button>
+      </div>
+    `;
+    fecharModalServicos();
+    return;
+  }
 }
-function removerServicoSelecionado() {
-  const container = document.getElementById('servicoContratadoContainer');
-  container.innerHTML = `
-    <button type=\"button\" class=\"select-service-btn\" onclick=\"abrirModalServicos()\" id=\"btnSelecionarServico\">Selecionar serviço</button>
+function removerServicoCadastro() {
+  document.getElementById('cadServicoContainer').innerHTML = `
+    <button type="button" class="select-service-btn" onclick="abrirModalServicos('cadastro')" id="btnSelecionarServico">Selecionar serviço</button>
+  `;
+}
+function removerServicoTroca() {
+  document.getElementById('trocaServicoContainer').innerHTML = `
+    <button type="button" class="select-service-btn" onclick="abrirModalServicos('troca')" id="btnSelecionarNovoServico">Selecionar novo serviço</button>
   `;
 }
 function toggleClienteCampos() {
@@ -105,11 +104,13 @@ function enviarSolicitacaoTroca() {
       novo_servico: document.querySelector('#trocaServicoArea input[type="text"]').value
     })
   })
-  .then(res => {
-    if (res.ok) {
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
       document.getElementById('solicitacaoMsg').innerHTML = `
         <div style="background:#fff3cd; color:#856404; padding:10px; border-radius:6px; text-align:center; margin-top:8px;">
-          Solicitação enviada com sucesso!
+          Solicitação enviada com sucesso!<br>
+          Protocolo: <b id='protocoloNumTroca'>${data.protocolo}</b> <button onclick='copiarProtocoloTroca()' style='margin-left:8px;padding:2px 8px;font-size:0.95em;cursor:pointer;'>Copiar</button>
         </div>
       `;
       // Limpa campos após sucesso
@@ -120,7 +121,7 @@ function enviarSolicitacaoTroca() {
       setTimeout(() => {
         document.getElementById('solicitacaoMsg').innerHTML = '';
         removerTrocaServico();
-      }, 3000);
+      }, 6000);
     } else {
       document.getElementById('solicitacaoMsg').innerHTML = `
         <div style="background:#f8d7da; color:#721c24; padding:10px; border-radius:6px; text-align:center; margin-top:8px;">
@@ -138,6 +139,11 @@ function enviarSolicitacaoTroca() {
   });
 }
 
+window.copiarProtocoloTroca = function() {
+  const num = document.getElementById('protocoloNumTroca').textContent;
+  navigator.clipboard.writeText(num);
+}
+
 // Limpar campos do formulário de cliente após sucesso
 function limparFormCliente() {
   document.getElementById('nomeCliente').value = '';
@@ -153,12 +159,14 @@ function limparFormCliente() {
 
 // Limpar campos do formulário de manutenção após sucesso
 function limparFormManutencao() {
-  document.getElementById('nomeEmpreendimentoVistoria').value = '';
+  document.getElementById('nomeVistoria').value = '';
+  document.getElementById('cpfVistoria').value = '';
+  document.getElementById('cepVistoria').value = '';
   document.getElementById('enderecoVistoria').value = '';
   document.getElementById('apartamentoVistoria').value = '';
   document.getElementById('blocoVistoria').value = '';
-  document.getElementById('nomeSindicoVistoria').value = '';
-  document.getElementById('engenheiroResponsavelVistoria').value = '';
+  document.getElementById('telefoneVistoria').value = '';
+  document.getElementById('horarioVistoria').value = '';
 }
 
 // CPF: apenas números, 11 dígitos e validação
@@ -231,8 +239,8 @@ cepInput.addEventListener('blur', function() {
     });
 });
 
-// Função utilitária para mostrar mensagem na tela
-function mostrarMensagem(msg, sucesso = true) {
+// Função utilitária para mostrar mensagem na tela com protocolo e botão de copiar
+function mostrarMensagemProtocolo(msg, protocolo) {
   let div = document.getElementById('mensagemFeedback');
   if (!div) {
     div = document.createElement('div');
@@ -249,12 +257,17 @@ function mostrarMensagem(msg, sucesso = true) {
     div.style.boxShadow = '0 2px 8px #0002';
     document.body.appendChild(div);
   }
-  div.textContent = msg;
-  div.style.background = sucesso ? '#d4edda' : '#f8d7da';
-  div.style.color = sucesso ? '#155724' : '#721c24';
-  div.style.border = sucesso ? '1px solid #c3e6cb' : '1px solid #f5c6cb';
+  div.innerHTML = `${msg}<br><span style='font-size:0.95em;'>Protocolo: <b id='protocoloNum'>${protocolo}</b> <button onclick='copiarProtocolo()' style='margin-left:8px;padding:2px 8px;font-size:0.95em;cursor:pointer;'>Copiar</button></span>`;
+  div.style.background = '#d4edda';
+  div.style.color = '#155724';
+  div.style.border = '1px solid #c3e6cb';
   div.style.display = 'block';
-  setTimeout(() => { div.style.display = 'none'; }, 3500);
+  setTimeout(() => { div.style.display = 'none'; }, 10000);
+}
+
+window.copiarProtocolo = function() {
+  const num = document.getElementById('protocoloNum').textContent;
+  navigator.clipboard.writeText(num);
 }
 
 // Envio do formulário de Vendas (Clientes)
@@ -292,9 +305,10 @@ document.getElementById('formVendas').addEventListener('submit', function(e) {
         servico: document.getElementById('servicoContratado') ? document.getElementById('servicoContratado').value : ''
       })
     })
-    .then(res => {
-      if (res.ok) {
-        mostrarMensagem('Cliente cadastrado com sucesso!');
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        mostrarMensagemProtocolo('Cliente cadastrado com sucesso!', data.protocolo);
         limparFormCliente();
       } else {
         mostrarMensagem('Erro ao cadastrar cliente!', false);
@@ -310,20 +324,186 @@ document.getElementById('formVistoria').addEventListener('submit', function(e) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      nome_empreendimento: document.getElementById('nomeEmpreendimentoVistoria').value,
+      nome: document.getElementById('nomeVistoria').value,
+      cpf: document.getElementById('cpfVistoria').value,
+      cep: document.getElementById('cepVistoria').value,
       endereco: document.getElementById('enderecoVistoria').value,
       apartamento: document.getElementById('apartamentoVistoria').value,
       bloco: document.getElementById('blocoVistoria').value,
-      nome_sindico: document.getElementById('nomeSindicoVistoria').value,
-      engenheiro_responsavel: document.getElementById('engenheiroResponsavelVistoria').value
+      telefone: document.getElementById('telefoneVistoria').value,
+      melhor_horario: document.getElementById('horarioVistoria').value
     })
   })
-  .then(res => {
-    if (res.ok) {
-      mostrarMensagem('Manutenção cadastrada com sucesso!');
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      mostrarMensagemProtocolo('Manutenção cadastrada com sucesso!', data.protocolo);
       limparFormManutencao();
     } else {
       mostrarMensagem('Erro ao cadastrar manutenção!', false);
+    }
+  });
+});
+
+// --- NOVO FLUXO ---
+
+// Alternância de telas
+function mostrarLogin() {
+  document.getElementById('telaInicial').style.display = 'none';
+  document.getElementById('formLogin').style.display = 'flex';
+  document.getElementById('formCadastro').style.display = 'none';
+  document.getElementById('areaAutenticada').style.display = 'none';
+}
+function mostrarCadastro() {
+  document.getElementById('telaInicial').style.display = 'none';
+  document.getElementById('formLogin').style.display = 'none';
+  document.getElementById('formCadastro').style.display = 'flex';
+  document.getElementById('areaAutenticada').style.display = 'none';
+}
+function voltarInicio() {
+  document.getElementById('telaInicial').style.display = 'block';
+  document.getElementById('formLogin').style.display = 'none';
+  document.getElementById('formCadastro').style.display = 'none';
+  document.getElementById('areaAutenticada').style.display = 'none';
+}
+
+// Cadastro de cliente
+const formCadastro = document.getElementById('formCadastro');
+formCadastro.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const senha = document.getElementById('cadSenha').value;
+  const senha2 = document.getElementById('cadSenha2').value;
+  if (senha !== senha2) {
+    mostrarMensagem('As senhas não coincidem!', false);
+    return;
+  }
+  fetch('https://chegar-primeiro.onrender.com/api/clientes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nome_cliente: document.getElementById('cadNome').value,
+      cpf: document.getElementById('cadCpf').value,
+      cep: document.getElementById('cadCep').value,
+      email: document.getElementById('cadEmail').value,
+      endereco: document.getElementById('cadEndereco').value,
+      apartamento: document.getElementById('cadApartamento').value,
+      bloco: document.getElementById('cadBloco').value,
+      nome_empreendimento: document.getElementById('cadEmpreendimento').value,
+      servico: document.getElementById('cadServico') ? document.getElementById('cadServico').value : '',
+      senha: senha
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      mostrarMensagemProtocolo('Cadastro realizado com sucesso!', data.protocolo);
+      formCadastro.reset();
+      voltarInicio();
+    } else {
+      mostrarMensagem('Erro ao cadastrar cliente!', false);
+    }
+  });
+});
+
+// Login de cliente
+const formLogin = document.getElementById('formLogin');
+formLogin.addEventListener('submit', function(e) {
+  e.preventDefault();
+  fetch('https://chegar-primeiro.onrender.com/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      cpf: document.getElementById('loginCpf').value,
+      senha: document.getElementById('loginSenha').value
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      autenticarCliente(data.cliente);
+    } else {
+      mostrarMensagem('CPF ou senha inválidos!', false);
+    }
+  });
+});
+
+// Função para autenticar e exibir área autenticada
+function autenticarCliente(cliente) {
+  document.getElementById('telaInicial').style.display = 'none';
+  document.getElementById('formLogin').style.display = 'none';
+  document.getElementById('formCadastro').style.display = 'none';
+  document.getElementById('areaAutenticada').style.display = 'block';
+  document.getElementById('cpfLogado').textContent = 'CPF: ' + cliente.cpf;
+  document.getElementById('vistoriaCpf').value = cliente.cpf;
+  document.getElementById('trocaCpf').value = cliente.cpf;
+  document.getElementById('trocaServicoAtual').value = cliente.servico || '';
+}
+
+// Alternância de abas autenticadas
+function showTab(idx) {
+  const forms = [document.getElementById('formVistoria'), document.getElementById('formTrocaServico')];
+  document.querySelectorAll('.tab').forEach((tab, i) => {
+    tab.classList.toggle('active', i === idx);
+    forms[i].style.display = i === idx ? 'block' : 'none';
+  });
+}
+// Inicializa abas
+showTab(0);
+document.getElementById('formVistoria').style.display = 'block';
+document.getElementById('formTrocaServico').style.display = 'none';
+
+// Envio do formulário de manutenção autenticada
+const formVistoria = document.getElementById('formVistoria');
+formVistoria.addEventListener('submit', function(e) {
+  e.preventDefault();
+  fetch('https://chegar-primeiro.onrender.com/api/manutencoes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nome: '', // Não precisa nome aqui, só CPF
+      cpf: document.getElementById('vistoriaCpf').value,
+      cep: '',
+      endereco: '',
+      apartamento: '',
+      bloco: '',
+      telefone: document.getElementById('vistoriaTelefone').value,
+      melhor_horario: document.getElementById('vistoriaHorario').value,
+      descricao: document.getElementById('vistoriaDescricao').value
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      mostrarMensagemProtocolo('Solicitação de manutenção enviada com sucesso!', data.protocolo);
+      formVistoria.reset();
+    } else {
+      mostrarMensagem('Erro ao enviar solicitação!', false);
+    }
+  });
+});
+
+// Envio do formulário de troca de serviço autenticada
+const formTroca = document.getElementById('formTrocaServico');
+formTroca.addEventListener('submit', function(e) {
+  e.preventDefault();
+  fetch('https://chegar-primeiro.onrender.com/api/troca-servico', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nome_cliente: '',
+      cpf_ou_contrato: document.getElementById('trocaCpf').value,
+      servico_atual: document.getElementById('trocaServicoAtual').value,
+      novo_servico: document.getElementById('trocaNovoServico') ? document.getElementById('trocaNovoServico').value : ''
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      mostrarMensagemProtocolo('Solicitação de troca enviada com sucesso!', data.protocolo);
+      formTroca.reset();
+      removerServicoTroca();
+    } else {
+      mostrarMensagem('Erro ao solicitar troca!', false);
     }
   });
 }); 
