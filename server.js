@@ -88,7 +88,7 @@ setInterval(async () => {
 const codigosVerificacao = {};
 
 // Configuração do transporter (ajuste para seu provedor de e-mail)
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
