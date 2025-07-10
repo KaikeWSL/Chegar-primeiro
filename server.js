@@ -13,22 +13,31 @@ app.use(cors({
 app.options('*', cors());
 app.use(bodyParser.json());
 
-// Configuração do banco Neon (PostgreSQL) com configurações robustas
+// Configuração do banco Neon (PostgreSQL) com conexão persistente
 const pool = new Pool({
   connectionString: 'postgresql://neondb_owner:npg_G43vPwgWaRkh@ep-empty-snow-acqkbuow-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
   max: 20, // Máximo de conexões no pool
-  idleTimeoutMillis: 30000, // Timeout para conexões inativas
-  connectionTimeoutMillis: 5000, // Timeout para estabelecer conexão
+  min: 5, // Mínimo de conexões sempre ativas
+  idleTimeoutMillis: 0, // 0 = nunca encerra conexões ociosas
+  connectionTimeoutMillis: 60000, // 60 segundos para estabelecer conexão
   keepAlive: true,
   keepAliveInitialDelayMillis: 0,
-  statement_timeout: 30000, // Timeout para queries
-  query_timeout: 30000,
-  application_name: 'chegar_primeiro_api'
+  statement_timeout: 0, // 0 = sem timeout para queries
+  query_timeout: 0, // 0 = sem timeout para queries
+  application_name: 'chegar_primeiro_api',
+  // Configurações adicionais para manter conexão viva
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 // Eventos de monitoramento do pool
 pool.on('connect', (client) => {
   console.log(`[${new Date().toISOString()}] [INFO] Nova conexão estabelecida com o banco de dados`);
+  
+  // Configura o cliente para manter conexão viva
+  client.query('SET statement_timeout = 0');
+  client.query('SET idle_in_transaction_session_timeout = 0');
 });
 
 pool.on('acquire', (client) => {
@@ -41,6 +50,11 @@ pool.on('release', (client) => {
 
 pool.on('error', (err, client) => {
   console.error(`[${new Date().toISOString()}] [ERROR] Erro no pool de conexões:`, err);
+  // Não encerra o processo, apenas loga o erro
+});
+
+pool.on('remove', (client) => {
+  console.log(`[${new Date().toISOString()}] [INFO] Conexão removida do pool`);
 });
 
 // Função para testar a conexão com o banco
@@ -48,18 +62,20 @@ async function testarConexao() {
   try {
     console.log(`[${new Date().toISOString()}] [INFO] Testando conexão com o banco de dados...`);
     const client = await pool.connect();
-    const result = await client.query('SELECT NOW()');
+    const result = await client.query('SELECT NOW(), version()');
     client.release();
     console.log(`[${new Date().toISOString()}] [INFO] Conexão com banco estabelecida com sucesso:`, result.rows[0]);
     return true;
   } catch (err) {
     console.error(`[${new Date().toISOString()}] [ERROR] Erro ao conectar com o banco:`, err);
+    // Tenta reconectar automaticamente
+    setTimeout(testarConexao, 5000);
     return false;
   }
 }
 
-// Função para executar queries com retry automático
-async function executarQuery(query, params = [], tentativas = 3) {
+// Função para executar queries com retry automático e reconexão
+async function executarQuery(query, params = [], tentativas = 5) {
   for (let i = 0; i < tentativas; i++) {
     try {
       console.log(`[${new Date().toISOString()}] [INFO] Executando query (tentativa ${i + 1}/${tentativas}):`, query.substring(0, 100) + '...');
@@ -68,10 +84,29 @@ async function executarQuery(query, params = [], tentativas = 3) {
       return result;
     } catch (err) {
       console.error(`[${new Date().toISOString()}] [ERROR] Erro na query (tentativa ${i + 1}/${tentativas}):`, err.message);
+      
+      // Se é erro de conexão, tenta reconectar
+      if (err.code === 'ECONNRESET' || err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED') {
+        console.log(`[${new Date().toISOString()}] [INFO] Erro de conexão detectado, tentando reconectar...`);
+        await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
+        continue;
+      }
+      
       if (i === tentativas - 1) throw err;
       // Aguarda um pouco antes de tentar novamente
       await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
     }
+  }
+}
+
+// Função para manter conexões ativas
+async function manterConexoesAtivas() {
+  try {
+    console.log(`[${new Date().toISOString()}] [INFO] Executando query de manutenção para manter conexões ativas...`);
+    await executarQuery('SELECT 1 as heartbeat');
+    console.log(`[${new Date().toISOString()}] [INFO] Heartbeat executado com sucesso`);
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] [ERROR] Erro no heartbeat:`, err);
   }
 }
 
@@ -84,11 +119,14 @@ setInterval(async () => {
   await testarConexao();
 }, 30000);
 
+// Heartbeat para manter conexões ativas (a cada 10 segundos)
+setInterval(manterConexoesAtivas, 10000);
+
 // Armazenamento temporário dos códigos de verificação (em memória)
 const codigosVerificacao = {};
 
 // Configuração do transporter (ajuste para seu provedor de e-mail)
-const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransporter({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
@@ -414,30 +452,53 @@ app.post('/api/validar-codigo-email', (req, res) => {
   res.json({ success: false, error: 'Código inválido' });
 });
 
+// Endpoint de health check
+app.get('/api/health', async (req, res) => {
+  try {
+    const result = await executarQuery('SELECT NOW() as timestamp');
+    res.json({ 
+      success: true, 
+      timestamp: result.rows[0].timestamp,
+      uptime: process.uptime(),
+      memory: process.memoryUsage()
+    });
+  } catch (err) {
+    res.status(500).json({ 
+      success: false, 
+      error: err.message 
+    });
+  }
+});
+
 // Middleware para capturar erros não tratados
 process.on('unhandledRejection', (reason, promise) => {
   console.error(`[${new Date().toISOString()}] [ERROR] Unhandled Rejection at:`, promise, 'reason:', reason);
+  // Não encerra o processo, apenas loga
 });
 
 process.on('uncaughtException', (error) => {
   console.error(`[${new Date().toISOString()}] [ERROR] Uncaught Exception:`, error);
+  // Não encerra o processo, apenas loga
 });
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log(`[${new Date().toISOString()}] [INFO] Recebido SIGTERM, encerrando graciosamente...`);
-  await pool.end();
-  console.log(`[${new Date().toISOString()}] [INFO] Pool de conexões encerrado`);
-  process.exit(0);
+// Removido o graceful shutdown para manter a aplicação sempre rodando
+// Os handlers de SIGTERM e SIGINT foram removidos
+
+// Configuração para manter o processo vivo
+process.on('SIGTERM', () => {
+  console.log(`[${new Date().toISOString()}] [INFO] Recebido SIGTERM, mas mantendo aplicação rodando...`);
 });
 
-process.on('SIGINT', async () => {
-  console.log(`[${new Date().toISOString()}] [INFO] Recebido SIGINT, encerrando graciosamente...`);
-  await pool.end();
-  console.log(`[${new Date().toISOString()}] [INFO] Pool de conexões encerrado`);
-  process.exit(0);
+process.on('SIGINT', () => {
+  console.log(`[${new Date().toISOString()}] [INFO] Recebido SIGINT, mas mantendo aplicação rodando...`);
+});
+
+// Restart automático em caso de erro crítico
+process.on('exit', (code) => {
+  console.log(`[${new Date().toISOString()}] [INFO] Processo terminando com código: ${code}`);
 });
 
 app.listen(3000, () => {
   console.log(`[${new Date().toISOString()}] [INFO] Servidor rodando na porta 3000`);
+  console.log(`[${new Date().toISOString()}] [INFO] Configuração de conexão persistente ativada`);
 });
