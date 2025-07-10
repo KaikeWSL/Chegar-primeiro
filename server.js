@@ -452,6 +452,76 @@ app.post('/api/validar-codigo-email', (req, res) => {
   res.json({ success: false, error: 'Código inválido' });
 });
 
+// --- Recuperação de senha ---
+
+// Endpoint para buscar e-mail mascarado por CPF
+app.post('/api/recuperar-email', async (req, res) => {
+  const { cpf } = req.body;
+  if (!cpf) return res.status(400).json({ success: false, error: 'CPF não informado' });
+  try {
+    const result = await executarQuery('SELECT email FROM clientes WHERE cpf = $1', [cpf]);
+    if (result.rows.length === 0 || !result.rows[0].email) {
+      return res.status(404).json({ success: false, error: 'E-mail não encontrado para este CPF' });
+    }
+    const email = result.rows[0].email;
+    // Mascara o e-mail (ex: kaike*********@gmail.com)
+    const [user, domain] = email.split('@');
+    const maskedUser = user.length <= 2 ? user[0] + '***' : user.substring(0, 2) + '*'.repeat(user.length - 2);
+    const maskedEmail = maskedUser + '@' + domain;
+    res.json({ success: true, email: maskedEmail, realEmail: email }); // realEmail só para uso interno do próximo endpoint
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpoint para enviar código de verificação para o e-mail do cliente (recuperação de senha)
+const codigosRecuperacaoSenha = {};
+app.post('/api/enviar-codigo-recuperacao', async (req, res) => {
+  const { cpf } = req.body;
+  if (!cpf) return res.status(400).json({ success: false, error: 'CPF não informado' });
+  try {
+    const result = await executarQuery('SELECT email FROM clientes WHERE cpf = $1', [cpf]);
+    if (result.rows.length === 0 || !result.rows[0].email) {
+      return res.status(404).json({ success: false, error: 'E-mail não encontrado para este CPF' });
+    }
+    const email = result.rows[0].email;
+    // Gera código de 6 dígitos
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    codigosRecuperacaoSenha[cpf] = { codigo, email, criadoEm: Date.now() };
+    await transporter.sendMail({
+      from: `Chegar Primeiro <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Código de recuperação de senha',
+      text: `Seu código de recuperação de senha é: ${codigo}`,
+      html: `<p>Seu código de recuperação de senha é: <b>${codigo}</b></p>`
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpoint para validar código e trocar senha
+app.post('/api/trocar-senha', async (req, res) => {
+  const { cpf, codigo, novaSenha } = req.body;
+  if (!cpf || !codigo || !novaSenha) {
+    return res.status(400).json({ success: false, error: 'Dados incompletos' });
+  }
+  const registro = codigosRecuperacaoSenha[cpf];
+  if (!registro || registro.codigo !== codigo) {
+    return res.status(400).json({ success: false, error: 'Código inválido' });
+  }
+  // Código válido, troca a senha
+  try {
+    const senhaHash = await bcrypt.hash(novaSenha, 10);
+    await executarQuery('UPDATE clientes SET senha = $1 WHERE cpf = $2', [senhaHash, cpf]);
+    delete codigosRecuperacaoSenha[cpf];
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Endpoint de health check
 app.get('/api/health', async (req, res) => {
   try {

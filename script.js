@@ -583,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div style='margin-bottom:6px;'><span style='font-weight:bold;color:#155724;'>Nome:</span> <span style='color:#222;'>${s.nome_cliente || '-'}</span></div>
                 <div style='margin-bottom:6px;'><span style='font-weight:bold;color:#155724;'>Status:</span> <span style='color:#218838;font-weight:bold;'>${s.status || 'Em análise'}</span></div>
                 <div style='margin-bottom:6px;'><span style='font-weight:bold;color:#155724;'>Descrição:</span> <span style='color:#222;'>${s.descricao || '-'}</span></div>
-                <div><span style='font-weight:bold;color:#155724;'>Data de registro:</span> <span style='color:#222;'>${s.data_registro ? new Date(s.data_registro).toLocaleString('pt-BR') : '-'}</span></div>
+                <div><span style='font-weight:bold;color:#155724;'>Data de registro:</span> <span style='color:#222;'>${formatarDataBrasilia(s.data_registro)}</span></div>
               </div>
             `;
           } else {
@@ -777,6 +777,154 @@ document.addEventListener('DOMContentLoaded', function() {
     // ... resto do código ...
   });
 
+  // --- Recuperação de senha ---
+
+  document.getElementById('btnEsqueciSenha').addEventListener('click', function() {
+    abrirModalRecuperarSenha();
+  });
+
+  function abrirModalRecuperarSenha() {
+    document.getElementById('modalRecuperarSenha').style.display = 'flex';
+    document.getElementById('recuperarSenhaEtapaCpf').style.display = 'block';
+    document.getElementById('recuperarSenhaEtapaEmail').style.display = 'none';
+    document.getElementById('recuperarSenhaEtapaCodigo').style.display = 'none';
+    document.getElementById('recuperarSenhaEtapaNovaSenha').style.display = 'none';
+    document.getElementById('recCpf').value = '';
+    document.getElementById('recEmailMasc').textContent = '';
+    document.getElementById('recCodigo').value = '';
+    document.getElementById('recNovaSenha').value = '';
+    document.getElementById('recNovaSenha2').value = '';
+    document.getElementById('recStatusCodigo').textContent = '';
+    etapaRecSenha = 1;
+    recCpfGlobal = '';
+  }
+
+  function fecharModalRecuperarSenha() {
+    document.getElementById('modalRecuperarSenha').style.display = 'none';
+  }
+  window.fecharModalRecuperarSenha = fecharModalRecuperarSenha;
+
+  let etapaRecSenha = 1;
+  let recCpfGlobal = '';
+
+  // Etapa 1: Buscar e-mail por CPF
+  const btnBuscarEmailRec = document.getElementById('btnBuscarEmailRec');
+  btnBuscarEmailRec.addEventListener('click', function() {
+    const cpf = document.getElementById('recCpf').value.replace(/\D/g, '');
+    if (cpf.length !== 11) {
+      mostrarMensagem('CPF inválido!', false);
+      return;
+    }
+    mostrarCarregando();
+    fetch('/api/recuperar-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cpf })
+    })
+    .then(res => res.json())
+    .then(data => {
+      esconderCarregando();
+      if (data.success) {
+        document.getElementById('recEmailMasc').textContent = data.email;
+        document.getElementById('recuperarSenhaEtapaCpf').style.display = 'none';
+        document.getElementById('recuperarSenhaEtapaEmail').style.display = 'block';
+        etapaRecSenha = 2;
+        recCpfGlobal = cpf;
+      } else {
+        mostrarMensagem(data.error || 'E-mail não encontrado!', false);
+      }
+    })
+    .catch(() => {
+      esconderCarregando();
+      mostrarMensagem('Erro ao buscar e-mail!', false);
+    });
+  });
+
+  // Etapa 2: Enviar código de verificação
+  const btnEnviarCodigoRec = document.getElementById('btnEnviarCodigoRec');
+  btnEnviarCodigoRec.addEventListener('click', function() {
+    if (!recCpfGlobal) return;
+    mostrarCarregando();
+    fetch('/api/enviar-codigo-recuperacao', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cpf: recCpfGlobal })
+    })
+    .then(res => res.json())
+    .then(data => {
+      esconderCarregando();
+      if (data.success) {
+        document.getElementById('recuperarSenhaEtapaEmail').style.display = 'none';
+        document.getElementById('recuperarSenhaEtapaCodigo').style.display = 'block';
+        etapaRecSenha = 3;
+        document.getElementById('recStatusCodigo').textContent = 'Código enviado!';
+        document.getElementById('recStatusCodigo').style.color = '#218838';
+      } else {
+        mostrarMensagem(data.error || 'Erro ao enviar código!', false);
+      }
+    })
+    .catch(() => {
+      esconderCarregando();
+      mostrarMensagem('Erro ao enviar código!', false);
+    });
+  });
+
+  // Etapa 3: Validar código
+  const btnValidarCodigoRec = document.getElementById('btnValidarCodigoRec');
+  btnValidarCodigoRec.addEventListener('click', function() {
+    const codigo = document.getElementById('recCodigo').value.trim();
+    if (!codigo || codigo.length !== 6) {
+      document.getElementById('recStatusCodigo').textContent = 'Digite o código de 6 dígitos.';
+      document.getElementById('recStatusCodigo').style.color = '#721c24';
+      return;
+    }
+    // Não valida no backend ainda, só na troca de senha
+    document.getElementById('recuperarSenhaEtapaCodigo').style.display = 'none';
+    document.getElementById('recuperarSenhaEtapaNovaSenha').style.display = 'block';
+    etapaRecSenha = 4;
+  });
+
+  // Etapa 4: Trocar senha
+  const btnTrocarSenhaRec = document.getElementById('btnTrocarSenhaRec');
+  btnTrocarSenhaRec.addEventListener('click', function() {
+    const novaSenha = document.getElementById('recNovaSenha').value;
+    const novaSenha2 = document.getElementById('recNovaSenha2').value;
+    const codigo = document.getElementById('recCodigo').value.trim();
+    if (!novaSenha || !novaSenha2) {
+      mostrarMensagem('Preencha os campos de senha!', false);
+      return;
+    }
+    if (novaSenha !== novaSenha2) {
+      mostrarMensagem('As senhas não coincidem!', false);
+      return;
+    }
+    if (!recCpfGlobal || !codigo) {
+      mostrarMensagem('Dados incompletos!', false);
+      return;
+    }
+    mostrarCarregando();
+    fetch('/api/trocar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cpf: recCpfGlobal, codigo, novaSenha })
+    })
+    .then(res => res.json())
+    .then(data => {
+      esconderCarregando();
+      if (data.success) {
+        mostrarMensagem('Senha alterada com sucesso! Faça login com a nova senha.');
+        fecharModalRecuperarSenha();
+        mostrarLogin();
+      } else {
+        mostrarMensagem(data.error || 'Erro ao trocar senha!', false);
+      }
+    })
+    .catch(() => {
+      esconderCarregando();
+      mostrarMensagem('Erro ao trocar senha!', false);
+    });
+  });
+
   window.showTab = showTab;
 });
 
@@ -810,4 +958,11 @@ function mostrarMensagem(msg, sucesso = true) {
   div.style.display = 'block';
   setTimeout(() => { div.style.display = 'none'; }, 6000);
 }
-window.mostrarMensagem = mostrarMensagem; 
+window.mostrarMensagem = mostrarMensagem;
+
+// Converte data para horário de Brasília
+function formatarDataBrasilia(data) {
+  if (!data) return '-';
+  // Garante que a data seja tratada como UTC
+  return new Date(data + 'Z').toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+} 

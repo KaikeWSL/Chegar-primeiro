@@ -365,3 +365,22 @@ body {
   background: #fff;
   color: #333;
 } 
+#modalRecuperarSenha input[type="text"],
+#modalRecuperarSenha input[type="password"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: #f7f7f7;
+  color: #222;
+  margin: 8px 0 12px 0;
+  font-size: 1em;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px #0001;
+}
+#modalRecuperarSenha label {
+  color: #222;
+  font-weight: 500;
+  margin-bottom: 2px;
+  display: block;
+} 
