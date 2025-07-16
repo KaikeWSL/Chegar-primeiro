@@ -104,15 +104,48 @@
       this.value = v;
     });
     // Exemplo de envio (apenas feedback visual)
-    document.getElementById('formSindico').addEventListener('submit', function(e) {
+    document.getElementById('formSindico').addEventListener('submit', async function(e) {
       e.preventDefault();
-      document.getElementById('notification').style.display = 'block';
-      document.getElementById('notification').innerText = 'Cadastro enviado com sucesso!';
-      setTimeout(function() {
-        document.getElementById('notification').style.display = 'none';
-        document.getElementById('formSindico').reset();
-        mostrarCampoOperadora();
-      }, 4000);
+      const notification = document.getElementById('notification');
+      notification.style.display = 'block';
+      notification.innerText = 'Enviando...';
+      // Monta o objeto com os dados do formulário
+      const dados = {
+        empresa_responsavel: document.getElementById('empresaResponsavel').value,
+        cnpj_empresa: document.getElementById('cnpjEmpresa').value,
+        email_responsavel_empresa: document.getElementById('emailResponsavelEmpresa').value,
+        telefone_responsavel_empresa: document.getElementById('telefoneResponsavelEmpresa').value,
+        nome_empreendimento: document.getElementById('nomeEmpreendimento').value,
+        qtd_torres: document.getElementById('qtdTorres').value,
+        qtd_aptos_por_andar: document.getElementById('qtdAptosPorAndar').value,
+        qtd_aptos_total: document.getElementById('qtdAptosTotal').value,
+        nome_sindico: document.getElementById('nomeSindico').value,
+        email_sindico: document.getElementById('emailSindico').value,
+        telefone_sindico: document.getElementById('telefoneSindico').value,
+        data_entrega: document.getElementById('dataEntrega').value,
+        existe_rede_operadora: document.getElementById('existeRedeOperadora').value === 'sim',
+        qual_operadora: document.getElementById('existeRedeOperadora').value === 'sim' ? document.getElementById('qualOperadora').value : null
+      };
+      try {
+        const resp = await fetch('https://chegar-primeiro.onrender.com/api/empreendimento', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados)
+        });
+        const result = await resp.json();
+        if (result.success) {
+          notification.innerText = 'Cadastro enviado e salvo no banco de dados com sucesso!';
+          setTimeout(function() {
+            notification.style.display = 'none';
+            document.getElementById('formSindico').reset();
+            mostrarCampoOperadora();
+          }, 4000);
+        } else {
+          notification.innerText = 'Erro ao salvar no banco de dados: ' + (result.error || 'Erro desconhecido');
+        }
+      } catch (err) {
+        notification.innerText = 'Erro ao conectar com o servidor.';
+      }
     });
   </script>
 </body>
