@@ -816,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     mostrarCarregando();
-    fetch('/api/recuperar-email', {
+    fetch('https://chegar-primeiro.onrender.com/api/recuperar-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cpf })
@@ -845,7 +845,7 @@ document.addEventListener('DOMContentLoaded', function() {
   btnEnviarCodigoRec.addEventListener('click', function() {
     if (!recCpfGlobal) return;
     mostrarCarregando();
-    fetch('/api/enviar-codigo-recuperacao', {
+    fetch('https://chegar-primeiro.onrender.com/api/enviar-codigo-recuperacao', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cpf: recCpfGlobal })
@@ -903,7 +903,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     mostrarCarregando();
-    fetch('/api/trocar-senha', {
+    fetch('https://chegar-primeiro.onrender.com/api/trocar-senha', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cpf: recCpfGlobal, codigo, novaSenha })
@@ -963,6 +963,17 @@ window.mostrarMensagem = mostrarMensagem;
 // Converte data para horário de Brasília
 function formatarDataBrasilia(data) {
   if (!data) return '-';
-  // Garante que a data seja tratada como UTC
-  return new Date(data + 'Z').toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+  let d;
+  if (data instanceof Date) {
+    d = data;
+  } else if (typeof data === 'string') {
+    let dataStr = data;
+    // Se já tiver 'Z' ou for ISO, não adiciona outro
+    if (!dataStr.endsWith('Z') && !dataStr.includes('+')) dataStr += 'Z';
+    d = new Date(dataStr);
+  } else {
+    return '-';
+  }
+  if (isNaN(d.getTime())) return '-';
+  return d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 } 

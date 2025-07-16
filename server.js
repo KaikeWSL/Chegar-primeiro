@@ -522,6 +522,63 @@ app.post('/api/trocar-senha', async (req, res) => {
   }
 });
 
+// Endpoint para cadastro de empreendimento (síndico)
+app.post('/api/empreendimento', async (req, res) => {
+  const {
+    empresa_responsavel,
+    cnpj_empresa,
+    email_responsavel_empresa,
+    telefone_responsavel_empresa,
+    nome_empreendimento,
+    qtd_torres,
+    qtd_aptos_por_andar,
+    qtd_aptos_total,
+    nome_sindico,
+    email_sindico,
+    telefone_sindico,
+    data_entrega,
+    existe_rede_operadora,
+    qual_operadora
+  } = req.body;
+
+  // Validação simples
+  if (!empresa_responsavel || !cnpj_empresa || !email_responsavel_empresa || !telefone_responsavel_empresa ||
+      !nome_empreendimento || !qtd_torres || !qtd_aptos_por_andar || !qtd_aptos_total ||
+      !nome_sindico || !email_sindico || !telefone_sindico || !data_entrega || typeof existe_rede_operadora === 'undefined') {
+    return res.status(400).json({ success: false, error: 'Campos obrigatórios faltando' });
+  }
+
+  try {
+    await executarQuery(
+      `INSERT INTO Empreendimento (
+        empresa_responsavel, cnpj_empresa, email_responsavel_empresa, telefone_responsavel_empresa,
+        nome_empreendimento, qtd_torres, qtd_aptos_por_andar, qtd_aptos_total,
+        nome_sindico, email_sindico, telefone_sindico, data_entrega, existe_rede_operadora, qual_operadora
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+      [
+        empresa_responsavel,
+        cnpj_empresa,
+        email_responsavel_empresa,
+        telefone_responsavel_empresa,
+        nome_empreendimento,
+        qtd_torres,
+        qtd_aptos_por_andar,
+        qtd_aptos_total,
+        nome_sindico,
+        email_sindico,
+        telefone_sindico,
+        data_entrega,
+        !!existe_rede_operadora,
+        qual_operadora || null
+      ]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[ERRO] Falha ao salvar empreendimento:', err);
+    res.status(500).json({ success: false, error: 'Erro ao salvar empreendimento' });
+  }
+});
+
 // Endpoint de health check
 app.get('/api/health', async (req, res) => {
   try {

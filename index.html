@@ -11,11 +11,13 @@
     <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/LogoClaro2017.png" class="logo" alt="Logo Claro">
     <h2 style="text-align:center; margin-bottom: 18px;">Chegar Primeiro</h2>
     <div id="telaInicial">
-      <h2>Você já é cliente?</h2>
-      <div style="display:flex; gap:20px; justify-content:center; margin:24px 0;">
-        <button onclick="mostrarLogin()" class="submit-btn">Sim</button>
-        <button onclick="mostrarCadastro()" class="submit-btn">Não</button>
+      <h2>Bem-vindo ao Chegar Primeiro</h2>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:18px; margin:32px 0;">
+        <a href="clientes.html" class="submit-btn" style="width:220px;text-align:center;">Área do Cliente</a>
+        <a href="sindico.html" class="submit-btn" style="width:220px;text-align:center;">Área do Síndico</a>
+        <a href="construtora.html" class="submit-btn" style="width:220px;text-align:center;">Área da Construtora</a>
       </div>
+      <p style="text-align:center;margin-top:32px;color:#fff;font-size:1em;">Escolha sua área de acesso.</p>
     </div>
     <form id="formLogin" style="display:none; flex-direction:column;">
       <h2>Login do Cliente</h2>
@@ -38,7 +40,7 @@
       <label>Email</label>
       <div style="display:flex;align-items:center;gap:8px;">
         <input type="email" id="cadEmail" required>
-        <span id="iconeEmailVerificado" style="display:none;font-size:1.5em;color:#218838;">✔️</span>
+        <span id="iconeEmailVerificado" style="display:none;font-size:1.5em;color:#00ff37;">✔️</span>
       </div>
       <button type="button" id="btnVerificarEmail" class="submit-btn" style="padding:6px 14px;font-size:0.95em;display:none;margin-top:6px;">Verificar e-mail</button>
       <div id="areaCodigoEmail" style="display:none;margin:8px 0 0 0;">
@@ -234,7 +236,7 @@
     }
     .esqueci-senha-link {
       background: none;
-      color: #1976d2;
+      color: #008cff;
       border: none;
       text-align: center;
       width: 100%;

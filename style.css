@@ -1,7 +1,7 @@
 .container {
   width: 350px;
   margin: 40px auto;
-  background: linear-gradient(to bottom, #4d0607 20%, #d31a20 100%);
+  background: linear-gradient(to bottom, #7a1b2c 20%, #d31a20 100%);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   color: #fff;
@@ -383,4 +383,47 @@ body {
   font-weight: 500;
   margin-bottom: 2px;
   display: block;
+} 
+
+/* Padronização dos campos de formulário */
+.container form input[type="text"],
+.container form input[type="email"],
+.container form input[type="password"],
+.container form input[type="number"],
+.container form input[type="date"],
+.container form select,
+.container form textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  margin-top: 2px;
+  margin-bottom: 12px;
+  font-size: 1em;
+  background: #fff;
+  color: #333;
+  display: block;
+}
+
+.container form label {
+  margin-top: 8px;
+  margin-bottom: 2px;
+  font-size: 1em;
+  font-weight: 500;
+  color: #fff;
+  display: block;
+}
+
+.container {
+  background: linear-gradient(to bottom, #7a1b2c 20%, #d31a20 100%);
+}
+
+.container form select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: #fff url('data:image/svg+xml;utf8,<svg fill="%237a1b2c" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 10px center/18px 18px;
 } 
