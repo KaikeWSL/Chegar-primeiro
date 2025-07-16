@@ -34,12 +34,14 @@
       <label>CNPJ ou CPF</label>
       <input type="text" id="cadDocumento" required>
       <label>Email</label>
-      <input type="email" id="cadEmail" required>
+        <input type="email" id="cadEmail" required>
       <label>Telefone</label>
       <input type="text" id="cadTelefone" required>
       <label>Nome do empreendimento</label>
-      <div id="empreendimentosArea">
-        <input type="text" class="cadEmpreendimento" required>
+      <div id="empreendimentosArea" style="display:flex; flex-direction:column; gap:8px;">
+        <div class="empreendimento-item" style="display:flex; align-items:center; gap:6px;">
+          <input type="text" class="cadEmpreendimento" required>
+        </div>
       </div>
       <button type="button" id="btnAddEmpreendimento" class="submit-btn" style="width:40px; padding:0; font-size:1.5em; margin: 0 0 12px 0;">+</button>
       <label>Senha</label>
@@ -50,8 +52,46 @@
       <button type="button" onclick="voltarInicio()" class="submit-btn" style="background:#eee; color:#333; margin-top:8px;">Voltar</button>
     </form>
     <div id="areaAutenticada" style="display:none; text-align:center;">
-      <h3>Bem-vindo, Síndico!</h3>
-      <p>Seu acesso foi autenticado com sucesso.</p>
+      <form id="formEmpreendimento" style="margin: 32px auto; max-width: 420px; padding: 24px 28px; border-radius: 10px; color: #222; text-align:left; box-shadow: 0 2px 12px #0001;">
+        <label>Nome da empresa responsável</label>
+        <input type="text" id="empresaResponsavel" required>
+        <label>CNPJ da empresa</label>
+        <input type="text" id="cnpjEmpresa" required placeholder="00.000.000/0000-00">
+        <label>E-mail do responsável pela empresa</label>
+        <input type="email" id="emailResponsavelEmpresa" required>
+        <label>Telefone do responsável pela empresa</label>
+        <input type="text" id="telResponsavelEmpresa" required placeholder="(00) 00000-0000">
+        <label>Nome do empreendimento</label>
+        <input type="text" id="nomeEmpreendimento" required>
+        <label>Endereço do empreendimento</label>
+        <input type="text" id="enderecoEmpreendimento" required>
+        <label>Quantidade de torres</label>
+        <input type="number" id="qtdTorres" required min="1">
+        <label>Quantidade de apartamentos por andar</label>
+        <input type="number" id="qtdAptosAndar" required min="1">
+        <label>Quantidade de apartamentos total</label>
+        <input type="number" id="qtdAptosTotal" required min="1">
+        <label>Responsável pelo local (síndico)</label>
+        <input type="text" id="nomeSindico" required>
+        <label>E-mail do responsável</label>
+        <input type="email" id="emailSindico" required>
+        <label>Telefone do responsável</label>
+        <input type="text" id="telSindico" required placeholder="(00) 00000-0000">
+        <label>Data que o empreendimento foi entregue</label>
+        <input type="date" id="dataEntrega" required>
+        <label>Existe rede de alguma operadora no local?</label>
+        <select id="existeRedeOperadora" required>
+          <option value="">Selecione</option>
+          <option value="Sim">Sim</option>
+          <option value="Não">Não</option>
+        </select>
+        <div id="campoQualOperadora" style="display:none;">
+          <label>Qual operadora?</label>
+          <input type="text" id="qualOperadora">
+        </div>
+        <button type="submit" class="submit-btn" style="margin-top:18px;">Cadastrar empreendimento</button>
+      </form>
+      <div id="notificacaoEmpreendimento" style="display:none; margin-top:16px;"></div>
     </div>
     <div class="notification" id="notification" style="display:none;"></div>
   </div>
@@ -125,16 +165,52 @@
       document.getElementById('formCadastro').style.display = 'none';
       document.getElementById('areaAutenticada').style.display = 'none';
     }
-    // Adicionar mais empreendimentos
+    // Adicionar mais empreendimentos (com botão de remover)
     document.getElementById('btnAddEmpreendimento').addEventListener('click', function() {
       const area = document.getElementById('empreendimentosArea');
+      const div = document.createElement('div');
+      div.className = 'empreendimento-item';
+      div.style.display = 'flex';
+      div.style.alignItems = 'center';
+      div.style.gap = '6px';
       const input = document.createElement('input');
       input.type = 'text';
       input.className = 'cadEmpreendimento';
       input.required = true;
-      input.style.marginTop = '8px';
-      area.appendChild(input);
+      const btnRemover = document.createElement('button');
+      btnRemover.type = 'button';
+      btnRemover.innerText = '-';
+      btnRemover.style.background = '#eee';
+      btnRemover.style.color = '#a00';
+      btnRemover.style.border = 'none';
+      btnRemover.style.fontSize = '1.3em';
+      btnRemover.style.width = '32px';
+      btnRemover.style.height = '32px';
+      btnRemover.style.borderRadius = '50%';
+      btnRemover.style.cursor = 'pointer';
+      btnRemover.style.display = 'flex';
+      btnRemover.style.alignItems = 'center';
+      btnRemover.style.justifyContent = 'center';
+      btnRemover.onclick = function() {
+        area.removeChild(div);
+        atualizarBotoesRemoverEmpreendimento();
+      };
+      div.appendChild(input);
+      div.appendChild(btnRemover);
+      area.appendChild(div);
+      atualizarBotoesRemoverEmpreendimento();
     });
+    // Função para mostrar/esconder botão '-' (remover) conforme quantidade de campos
+    function atualizarBotoesRemoverEmpreendimento() {
+      const area = document.getElementById('empreendimentosArea');
+      const items = area.querySelectorAll('.empreendimento-item');
+      items.forEach(function(item, idx) {
+        const btn = item.querySelector('button');
+        if (btn) btn.style.display = (items.length > 1) ? 'flex' : 'none';
+      });
+    }
+    // Inicializa botão '-' no primeiro campo (não mostra)
+    atualizarBotoesRemoverEmpreendimento();
     // Máscara para telefone
     document.getElementById('cadTelefone').addEventListener('input', function(e) {
       let v = this.value.replace(/\D/g, '');
@@ -204,6 +280,9 @@
           document.getElementById('formLogin').reset();
           document.getElementById('formLogin').style.display = 'none';
           document.getElementById('areaAutenticada').style.display = 'block';
+          // Garante que o formulário de empreendimento está visível
+          var formEmp = document.getElementById('formEmpreendimento');
+          if(formEmp) formEmp.style.display = 'block';
         } else {
           notification.innerText = 'Documento ou senha inválidos!';
         }
@@ -305,6 +384,57 @@
         }
       } catch (err) {
         alert('Erro ao conectar com o servidor.');
+      }
+    });
+    // Cadastro de empreendimento do síndico
+    document.getElementById('formEmpreendimento').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const notificacao = document.getElementById('notificacaoEmpreendimento');
+      notificacao.style.display = 'block';
+      notificacao.innerText = 'Enviando...';
+      const dados = {
+        empresaResponsavel: document.getElementById('empresaResponsavel').value,
+        cnpjEmpresa: document.getElementById('cnpjEmpresa').value,
+        emailResponsavelEmpresa: document.getElementById('emailResponsavelEmpresa').value,
+        telResponsavelEmpresa: document.getElementById('telResponsavelEmpresa').value,
+        nomeEmpreendimento: document.getElementById('nomeEmpreendimento').value,
+        enderecoEmpreendimento: document.getElementById('enderecoEmpreendimento').value,
+        qtdTorres: document.getElementById('qtdTorres').value,
+        qtdAptosAndar: document.getElementById('qtdAptosAndar').value,
+        qtdAptosTotal: document.getElementById('qtdAptosTotal').value,
+        nomeSindico: document.getElementById('nomeSindico').value,
+        emailSindico: document.getElementById('emailSindico').value,
+        telSindico: document.getElementById('telSindico').value,
+        dataEntrega: document.getElementById('dataEntrega').value,
+        existeRedeOperadora: document.getElementById('existeRedeOperadora').value,
+        qualOperadora: document.getElementById('qualOperadora').value
+      };
+      try {
+        const resp = await fetch('https://chegar-primeiro.onrender.com/api/empreendimento', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados)
+        });
+        const result = await resp.json();
+        if (result.success) {
+          notificacao.innerText = 'Empreendimento cadastrado com sucesso!';
+          document.getElementById('formEmpreendimento').reset();
+        } else {
+          notificacao.innerText = 'Erro ao cadastrar: ' + (result.error || 'Erro desconhecido');
+        }
+      } catch (err) {
+        notificacao.innerText = 'Erro ao conectar com o servidor.';
+      }
+      setTimeout(() => { notificacao.style.display = 'none'; }, 4000);
+    });
+    // Mostrar/ocultar campo 'Qual operadora?'
+    document.getElementById('existeRedeOperadora').addEventListener('change', function() {
+      var campo = document.getElementById('campoQualOperadora');
+      if(this.value === 'Sim') {
+        campo.style.display = 'block';
+      } else {
+        campo.style.display = 'none';
+        document.getElementById('qualOperadora').value = '';
       }
     });
     function mascararEmail(email) {
