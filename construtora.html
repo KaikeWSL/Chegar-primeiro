@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="container">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/LogoClaro2017.png" class="logo" alt="Logo Claro">
+
     <h2 style="text-align:center; margin-bottom: 18px;">Cadastro de Empreendimento (Construtora)</h2>
     <div id="telaInicialConstrutora">
       <h3 style="text-align:center; margin-bottom:18px;">Você já é cadastrado?</h3>
@@ -115,7 +115,7 @@
         senha: document.getElementById('cadSenhaConstrutora').value
       };
       try {
-        const resp = await fetch('https://chegar-primeiro.onrender.com/api/construtora', {
+        const resp = await fetch('https://chegarprimeiro-sem-cor.onrender.com/api/construtora', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dados)
@@ -143,7 +143,7 @@
         senha: document.getElementById('loginSenhaConstrutora').value
       };
       try {
-        const resp = await fetch('https://chegar-primeiro.onrender.com/api/construtora-login', {
+        const resp = await fetch('https://chegarprimeiro-sem-cor.onrender.com/api/construtora-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dados)
@@ -209,7 +209,7 @@
       formData.append('telefone_responsavel_stand', document.getElementById('telefoneResponsavelStand').value);
       formData.append('email_responsavel_stand', document.getElementById('emailResponsavelStand').value);
       try {
-        const resp = await fetch('https://chegar-primeiro.onrender.com/api/empreendimento-construtora', {
+        const resp = await fetch('https://chegarprimeiro-sem-cor.onrender.com/api/empreendimento-construtora', {
           method: 'POST',
           body: formData
         });
