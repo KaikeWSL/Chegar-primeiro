@@ -5,7 +5,8 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
-const { neonQuery } = require('./neonApi');
+const { neonQuery, neonClient, startHealthCheck } = require('./neonApi');
+
 const upload = multer({
   dest: 'uploads/',
   limits: { fileSize: 10 * 1024 * 1024 }
@@ -19,11 +20,21 @@ app.use(cors({
 app.options('*', cors());
 app.use(bodyParser.json());
 
+// Middleware para logging de requisições
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
+  });
+  next();
+});
+
 // Armazenamento temporário dos códigos de verificação (em memória)
 const codigosVerificacao = {};
 
 // Configuração do transporter (ajuste para seu provedor de e-mail)
-const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransporter({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
@@ -46,98 +57,151 @@ function gerarProtocolo() {
   return protocolo;
 }
 
-// Função para inserir solicitação genérica
+// Função para inserir solicitação genérica com melhor tratamento de erros
 async function salvarSolicitacao(dados) {
-  let senhaHash = null;
-  if (dados.tipo === 'novo_cliente' && dados.senha) {
-    senhaHash = await bcrypt.hash(dados.senha, 10);
-  }
-
-  // Se for novo cliente, verifica duplicidade antes de inserir na tabela clientes
-  if (dados.tipo === 'novo_cliente') {
-    const existe = await neonQuery(
-      'SELECT 1 FROM clientes WHERE cpf = $1 OR email = $2',
-      [dados.cpf, dados.email]
-    );
-    if (existe.rows.length > 0) {
-      return { jaExiste: true };
+  try {
+    let senhaHash = null;
+    if (dados.tipo === 'novo_cliente' && dados.senha) {
+      senhaHash = await bcrypt.hash(dados.senha, 10);
     }
-  }
 
-  const protocolo = gerarProtocolo();
+    // Se for novo cliente, verifica duplicidade antes de inserir na tabela clientes
+    if (dados.tipo === 'novo_cliente') {
+      const existe = await neonQuery(
+        'SELECT 1 FROM clientes WHERE cpf = $1 OR email = $2',
+        [dados.cpf, dados.email]
+      );
+      if (existe.rows.length > 0) {
+        return { jaExiste: true };
+      }
+    }
 
-  // Insere na tabela solicitacoes
-  await neonQuery(
-    `INSERT INTO solicitacoes
-      (tipo, nome_cliente, cpf, cep, email, endereco, apartamento, bloco, nome_empreendimento, servico_atual, novo_servico, telefone, melhor_horario, descricao, data_registro, status, protocolo)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW(),$15,$16)`,
-    [
-      dados.tipo,
-      dados.nome_cliente || null,
-      dados.cpf || null,
-      dados.cep || null,
-      dados.email || null,
-      dados.endereco || null,
-      dados.apartamento || null,
-      dados.bloco || null,
-      dados.nome_empreendimento || null,
-      dados.servico_atual || null,
-      dados.novo_servico || null,
-      dados.telefone || null,
-      dados.melhor_horario || null,
-      dados.descricao || null,
-      'Em análise',
-      protocolo
-    ]
-  );
+    const protocolo = gerarProtocolo();
 
-  // Se for novo cliente, insere também na tabela clientes
-  if (dados.tipo === 'novo_cliente') {
-    await neonQuery(
-      `INSERT INTO clientes
-        (nome_cliente, cpf, cep, email, endereco, apartamento, bloco, nome_empreendimento, servico, senha)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
-      [
-        dados.nome_cliente || null,
-        dados.cpf || null,
-        dados.cep || null,
-        dados.email || null,
-        dados.endereco || null,
-        dados.apartamento || null,
-        dados.bloco || null,
-        dados.nome_empreendimento || null,
-        dados.novo_servico || null,
-        senhaHash
-      ]
-    );
-  }
+    // Usa transação para garantir consistência
+    const queries = [
+      {
+        sql: `INSERT INTO solicitacoes
+          (tipo, nome_cliente, cpf, cep, email, endereco, apartamento, bloco, nome_empreendimento, servico_atual, novo_servico, telefone, melhor_horario, descricao, data_registro, status, protocolo)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW(),$15,$16)`,
+        params: [
+          dados.tipo,
+          dados.nome_cliente || null,
+          dados.cpf || null,
+          dados.cep || null,
+          dados.email || null,
+          dados.endereco || null,
+          dados.apartamento || null,
+          dados.bloco || null,
+          dados.nome_empreendimento || null,
+          dados.servico_atual || null,
+          dados.novo_servico || null,
+          dados.telefone || null,
+          dados.melhor_horario || null,
+          dados.descricao || null,
+          'Em análise',
+          protocolo
+        ]
+      }
+    ];
 
-  // Envia o protocolo por e-mail, se houver e-mail
-  if (dados.email) {
-    try {
-      await transporter.sendMail({
-        from: `Chegar Primeiro <${process.env.EMAIL_USER}>`,
-        to: dados.email,
-        subject: 'Protocolo da sua solicitação',
-        text: `Sua solicitação foi registrada com sucesso!\nProtocolo: ${protocolo}`,
-        html: `<p>Sua solicitação foi registrada com sucesso!<br>Protocolo: <b>${protocolo}</b></p>`
+    // Se for novo cliente, adiciona inserção na tabela clientes
+    if (dados.tipo === 'novo_cliente') {
+      queries.push({
+        sql: `INSERT INTO clientes
+          (nome_cliente, cpf, cep, email, endereco, apartamento, bloco, nome_empreendimento, servico, senha)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+        params: [
+          dados.nome_cliente || null,
+          dados.cpf || null,
+          dados.cep || null,
+          dados.email || null,
+          dados.endereco || null,
+          dados.apartamento || null,
+          dados.bloco || null,
+          dados.nome_empreendimento || null,
+          dados.novo_servico || null,
+          senhaHash
+        ]
       });
-    } catch (err) {
-      console.error(`[EMAIL ERROR]`, err.message);
     }
-  }
 
-  return protocolo;
+    // Executa transação
+    await neonClient.transaction(queries);
+
+    // Envia o protocolo por e-mail, se houver e-mail
+    if (dados.email) {
+      try {
+        await transporter.sendMail({
+          from: `Chegar Primeiro <${process.env.EMAIL_USER}>`,
+          to: dados.email,
+          subject: 'Protocolo da sua solicitação',
+          text: `Sua solicitação foi registrada com sucesso!\nProtocolo: ${protocolo}`,
+          html: `<p>Sua solicitação foi registrada com sucesso!<br>Protocolo: <b>${protocolo}</b></p>`
+        });
+      } catch (err) {
+        console.error(`[EMAIL ERROR]`, err.message);
+      }
+    }
+
+    return protocolo;
+
+  } catch (error) {
+    console.error('[SALVAR_SOLICITACAO_ERROR]', error.message);
+    throw error;
+  }
 }
 
 // Função para buscar cliente (novo_cliente) por CPF
 async function buscarClientePorCPF(cpf) {
-  const result = await neonQuery(
-    'SELECT * FROM solicitacoes WHERE cpf = $1 AND tipo = $2',
-    [cpf, 'novo_cliente']
-  );
-  return result.rows[0];
+  try {
+    const result = await neonQuery(
+      'SELECT * FROM solicitacoes WHERE cpf = $1 AND tipo = $2',
+      [cpf, 'novo_cliente']
+    );
+    return result.rows[0];
+  } catch (error) {
+    console.error('[BUSCAR_CLIENTE_ERROR]', error.message);
+    throw error;
+  }
 }
+
+// Middleware para tratamento de erros
+app.use((err, req, res, next) => {
+  console.error('[SERVER_ERROR]', err.stack);
+  res.status(500).json({ 
+    success: false, 
+    error: 'Erro interno do servidor',
+    requestId: req.headers['x-request-id'] || 'unknown'
+  });
+});
+
+// Rota para health check
+app.get('/api/health', async (req, res) => {
+  try {
+    const dbHealth = await neonClient.healthCheck();
+    const metrics = neonClient.getMetrics();
+    
+    res.status(dbHealth.healthy ? 200 : 503).json({
+      status: dbHealth.healthy ? 'healthy' : 'unhealthy',
+      database: dbHealth,
+      metrics: metrics,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Rota para métricas
+app.get('/api/metrics', (req, res) => {
+  const metrics = neonClient.getMetrics();
+  res.json(metrics);
+});
 
 // Rota única para inserir qualquer solicitação
 app.post('/api/solicitacoes', async (req, res) => {
@@ -148,6 +212,7 @@ app.post('/api/solicitacoes', async (req, res) => {
     }
     res.status(200).json({ success: true, protocolo: resultado });
   } catch (err) {
+    console.error('[SOLICITACOES_ERROR]', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -162,6 +227,7 @@ app.get('/api/clientes/:cpf', async (req, res) => {
       res.status(404).json({ success: false, error: 'Cliente não encontrado' });
     }
   } catch (err) {
+    console.error('[BUSCAR_CLIENTE_ERROR]', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -169,6 +235,7 @@ app.get('/api/clientes/:cpf', async (req, res) => {
 // Endpoint de login de cliente
 app.post('/api/login', async (req, res) => {
   const { cpf, senha } = req.body;
+  
   try {
     const result = await neonQuery('SELECT * FROM clientes WHERE cpf = $1', [cpf]);
     if (result.rows.length === 0) {
@@ -184,6 +251,7 @@ app.post('/api/login', async (req, res) => {
     delete cliente.senha;
     res.status(200).json({ success: true, cliente });
   } catch (err) {
+    console.error('[LOGIN_ERROR]', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -199,6 +267,7 @@ app.get('/api/cliente-completo/:cpf', async (req, res) => {
     delete cliente.senha;
     res.status(200).json({ success: true, cliente });
   } catch (err) {
+    console.error('[CLIENTE_COMPLETO_ERROR]', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -212,14 +281,25 @@ app.get('/api/solicitacao/:protocolo', async (req, res) => {
     }
     res.status(200).json({ success: true, solicitacao: result.rows[0] });
   } catch (err) {
+    console.error('[SOLICITACAO_ERROR]', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Adicione aqui outros endpoints conforme necessário...
+// Inicia o health check periódico
+startHealthCheck(60000); // A cada 60 segundos
 
 // Inicie o servidor
 const PORT = process.env.PORT || 8888;
 app.listen(PORT, () => {
   console.log(`API Chegar Primeiro rodando na porta ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/api/health`);
+  console.log(`Métricas: http://localhost:${PORT}/api/metrics`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('Recebido SIGTERM. Fechando servidor...');
+  await neonClient.close();
+  process.exit(0);
 });
