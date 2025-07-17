@@ -1,137 +1,129 @@
 const fetch = require('node-fetch');
-const { AbortController } = require('abort-controller');
 
-class NeonApiClient {
-  constructor(apiUrl, options = {}) {
-    this.apiUrl = apiUrl;
-    this.options = {
-      timeout: options.timeout || 30000, // 30 segundos
-      retries: options.retries || 3,
-      retryDelay: options.retryDelay || 1000, // 1 segundo
-      maxConcurrentRequests: options.maxConcurrentRequests || 10,
-      ...options
-    };
-    
-    // Pool de conexões para controlar requisições simultâneas
-    this.activeRequests = 0;
-    this.requestQueue = [];
-    
-    // Cache para prepared statements (opcional)
-    this.statementCache = new Map();
-    
-    // Métricas básicas
-    this.metrics = {
-      totalRequests: 0,
-      successfulRequests: 0,
-      failedRequests: 0,
-      totalRetries: 0,
-      averageResponseTime: 0
-    };
+// Configuração
+const NEON_API_URL = process.env.NEON_API_URL || 'https://app-jolly-tooth-51509944.dpl.myneon.app';
+const DEFAULT_TIMEOUT = 30000; // 30 segundos
+const DEFAULT_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 segundo
+
+// Métricas simples
+const metrics = {
+  totalRequests: 0,
+  successfulRequests: 0,
+  failedRequests: 0,
+  totalRetries: 0
+};
+
+// Função para delay
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Função para validar SQL básica
+function validateSql(sql) {
+  if (!sql || typeof sql !== 'string') {
+    throw new Error('SQL query deve ser uma string não vazia');
   }
-
-  // Método para aguardar slot disponível no pool
-  async acquireSlot() {
-    if (this.activeRequests >= this.options.maxConcurrentRequests) {
-      return new Promise((resolve) => {
-        this.requestQueue.push(resolve);
-      });
-    }
-    this.activeRequests++;
-  }
-
-  // Método para liberar slot no pool
-  releaseSlot() {
-    this.activeRequests--;
-    if (this.requestQueue.length > 0) {
-      const resolve = this.requestQueue.shift();
-      this.activeRequests++;
-      resolve();
+  
+  // Previne alguns comandos perigosos
+  const prohibitedPatterns = [
+    /;\s*drop\s+/i,
+    /;\s*delete\s+/i,
+    /;\s*truncate\s+/i,
+    /;\s*alter\s+/i,
+    /;\s*create\s+/i
+  ];
+  
+  for (const pattern of prohibitedPatterns) {
+    if (pattern.test(sql)) {
+      throw new Error('SQL query contém comandos não permitidos');
     }
   }
+}
 
-  // Método para delay entre tentativas
-  delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+// Função para verificar se erro deve ser retentado
+function isRetryableError(error) {
+  const nonRetryablePatterns = [
+    /syntax error/i,
+    /permission denied/i,
+    /relation .* does not exist/i,
+    /column .* does not exist/i,
+    /duplicate key/i,
+    /violates.*constraint/i
+  ];
+  
+  return !nonRetryablePatterns.some(pattern => pattern.test(error.message));
+}
 
-  // Método para validar SQL (básico)
-  validateSql(sql) {
-    if (!sql || typeof sql !== 'string') {
-      throw new Error('SQL query deve ser uma string não vazia');
+// Função para executar query com timeout
+async function executeQueryWithTimeout(sql, params, timeout = DEFAULT_TIMEOUT) {
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(`Query timeout após ${timeout}ms`)), timeout);
+  });
+  
+  const queryPromise = fetch(NEON_API_URL, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'User-Agent': 'NeonApiClient/1.0'
+    },
+    body: JSON.stringify({ sql, params })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.error) {
+      throw new Error(`Database error: ${data.error}`);
+    }
+    return data;
+  });
+  
+  return Promise.race([queryPromise, timeoutPromise]);
+}
+
+// Função principal com retry
+async function neonQuery(sql, params = []) {
+  const startTime = Date.now();
+  
+  try {
+    // Validações
+    validateSql(sql);
+    
+    if (!Array.isArray(params)) {
+      throw new Error('Parâmetros devem ser um array');
     }
     
-    // Previne algumas injections básicas
-    const prohibitedPatterns = [
-      /;\s*drop\s+/i,
-      /;\s*delete\s+/i,
-      /;\s*truncate\s+/i,
-      /;\s*alter\s+/i,
-      /;\s*create\s+/i
-    ];
+    metrics.totalRequests++;
     
-    for (const pattern of prohibitedPatterns) {
-      if (pattern.test(sql)) {
-        throw new Error('SQL query contém comandos não permitidos');
-      }
-    }
-  }
-
-  // Método principal para executar queries
-  async query(sql, params = []) {
-    const startTime = Date.now();
-    
-    try {
-      // Validações básicas
-      this.validateSql(sql);
-      
-      if (!Array.isArray(params)) {
-        throw new Error('Parâmetros devem ser um array');
-      }
-
-      // Aguarda slot disponível
-      await this.acquireSlot();
-
-      // Executa query com retry
-      const result = await this.executeWithRetry(sql, params);
-      
-      // Atualiza métricas
-      this.updateMetrics(true, Date.now() - startTime);
-      
-      return result;
-      
-    } catch (error) {
-      this.updateMetrics(false, Date.now() - startTime);
-      throw error;
-    } finally {
-      this.releaseSlot();
-    }
-  }
-
-  // Método para executar query com retry automático
-  async executeWithRetry(sql, params) {
     let lastError;
     
-    for (let attempt = 0; attempt <= this.options.retries; attempt++) {
+    // Tenta executar com retry
+    for (let attempt = 0; attempt <= DEFAULT_RETRIES; attempt++) {
       try {
         if (attempt > 0) {
-          console.log(`[NEON] Tentativa ${attempt + 1}/${this.options.retries + 1} para query`);
-          await this.delay(this.options.retryDelay * attempt);
-          this.metrics.totalRetries++;
+          console.log(`[NEON] Tentativa ${attempt + 1}/${DEFAULT_RETRIES + 1} para query`);
+          await delay(RETRY_DELAY * attempt);
+          metrics.totalRetries++;
         }
         
-        const result = await this.executeQuery(sql, params);
+        const result = await executeQueryWithTimeout(sql, params);
         
         if (attempt > 0) {
           console.log(`[NEON] Query executada com sucesso na tentativa ${attempt + 1}`);
         }
         
+        metrics.successfulRequests++;
         return result;
         
       } catch (error) {
         lastError = error;
         
-        // Não faz retry para certos tipos de erro
-        if (this.isNonRetryableError(error)) {
+        // Não tenta novamente para certos tipos de erro
+        if (!isRetryableError(error)) {
           throw error;
         }
         
@@ -139,162 +131,60 @@ class NeonApiClient {
       }
     }
     
-    throw new Error(`Query falhou após ${this.options.retries + 1} tentativas. Último erro: ${lastError.message}`);
+    throw new Error(`Query falhou após ${DEFAULT_RETRIES + 1} tentativas. Último erro: ${lastError.message}`);
+    
+  } catch (error) {
+    metrics.failedRequests++;
+    console.error(`[NEON] Query error (${Date.now() - startTime}ms):`, error.message);
+    throw error;
   }
+}
 
-  // Método para executar a query HTTP
-  async executeQuery(sql, params) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
-    
-    try {
-      const response = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'User-Agent': 'NeonApiClient/1.0'
-        },
-        body: JSON.stringify({ sql, params }),
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(`Database error: ${data.error}`);
-      }
-      
-      return data;
-      
-    } catch (error) {
-      clearTimeout(timeoutId);
-      
-      if (error.name === 'AbortError') {
-        throw new Error(`Query timeout após ${this.options.timeout}ms`);
-      }
-      
-      throw error;
-    }
+// Função para executar múltiplas queries sequencialmente
+async function neonTransaction(queries) {
+  if (!Array.isArray(queries) || queries.length === 0) {
+    throw new Error('Transação deve conter pelo menos uma query');
   }
-
-  // Verifica se o erro não deve ser retentado
-  isNonRetryableError(error) {
-    const nonRetryablePatterns = [
-      /syntax error/i,
-      /permission denied/i,
-      /relation .* does not exist/i,
-      /column .* does not exist/i,
-      /duplicate key/i,
-      /violates.*constraint/i,
-      /timeout/i
-    ];
-    
-    return nonRetryablePatterns.some(pattern => pattern.test(error.message));
+  
+  const results = [];
+  
+  for (const { sql, params } of queries) {
+    const result = await neonQuery(sql, params);
+    results.push(result);
   }
+  
+  return results;
+}
 
-  // Atualiza métricas
-  updateMetrics(success, responseTime) {
-    this.metrics.totalRequests++;
-    
-    if (success) {
-      this.metrics.successfulRequests++;
-    } else {
-      this.metrics.failedRequests++;
-    }
-    
-    // Calcula média móvel simples do tempo de resposta
-    const alpha = 0.1; // Fator de suavização
-    this.metrics.averageResponseTime = 
-      (this.metrics.averageResponseTime * (1 - alpha)) + (responseTime * alpha);
-  }
-
-  // Método para transações (se suportado pela API)
-  async transaction(queries) {
-    if (!Array.isArray(queries) || queries.length === 0) {
-      throw new Error('Transação deve conter pelo menos uma query');
-    }
-    
-    // Se a API suportar transações, implementar aqui
-    // Por enquanto, executa sequencialmente
-    const results = [];
-    
-    for (const { sql, params } of queries) {
-      const result = await this.query(sql, params);
-      results.push(result);
-    }
-    
-    return results;
-  }
-
-  // Método para health check
-  async healthCheck() {
-    try {
-      const result = await this.query('SELECT 1 as health_check');
-      return {
-        healthy: true,
-        responseTime: Date.now(),
-        result: result.rows?.[0]?.health_check === 1
-      };
-    } catch (error) {
-      return {
-        healthy: false,
-        error: error.message,
-        responseTime: Date.now()
-      };
-    }
-  }
-
-  // Método para obter métricas
-  getMetrics() {
+// Função para health check
+async function neonHealthCheck() {
+  try {
+    const result = await neonQuery('SELECT 1 as health_check');
     return {
-      ...this.metrics,
-      activeRequests: this.activeRequests,
-      queuedRequests: this.requestQueue.length,
-      successRate: this.metrics.totalRequests > 0 
-        ? (this.metrics.successfulRequests / this.metrics.totalRequests * 100).toFixed(2) + '%'
-        : '0%'
+      healthy: true,
+      responseTime: Date.now(),
+      result: result.rows?.[0]?.health_check === 1
+    };
+  } catch (error) {
+    return {
+      healthy: false,
+      error: error.message,
+      responseTime: Date.now()
     };
   }
-
-  // Método para limpar cache
-  clearCache() {
-    this.statementCache.clear();
-  }
-
-  // Método para fechar conexões (cleanup)
-  async close() {
-    // Aguarda todas as requisições pendentes
-    while (this.activeRequests > 0 || this.requestQueue.length > 0) {
-      await this.delay(100);
-    }
-    
-    this.clearCache();
-    console.log('[NEON] Cliente fechado com sucesso');
-  }
 }
 
-// Instância singleton
-const NEON_API_URL = process.env.NEON_API_URL || 'https://app-jolly-tooth-51509944.dpl.myneon.app';
-
-const neonClient = new NeonApiClient(NEON_API_URL, {
-  timeout: 30000,
-  retries: 3,
-  retryDelay: 1000,
-  maxConcurrentRequests: 10
-});
-
-// Função de compatibilidade com a API anterior
-async function neonQuery(sql, params = []) {
-  return await neonClient.query(sql, params);
+// Função para obter métricas
+function getMetrics() {
+  return {
+    ...metrics,
+    successRate: metrics.totalRequests > 0 
+      ? (metrics.successfulRequests / metrics.totalRequests * 100).toFixed(2) + '%'
+      : '0%'
+  };
 }
 
-// Health check periódico (opcional)
+// Health check periódico opcional
 let healthCheckInterval;
 function startHealthCheck(intervalMs = 60000) {
   if (healthCheckInterval) {
@@ -303,7 +193,7 @@ function startHealthCheck(intervalMs = 60000) {
   
   healthCheckInterval = setInterval(async () => {
     try {
-      const health = await neonClient.healthCheck();
+      const health = await neonHealthCheck();
       if (!health.healthy) {
         console.warn('[NEON] Health check falhou:', health.error);
       }
@@ -314,18 +204,27 @@ function startHealthCheck(intervalMs = 60000) {
 }
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('[NEON] Fechando conexões...');
+process.on('SIGINT', () => {
+  console.log('[NEON] Fechando aplicação...');
   if (healthCheckInterval) {
     clearInterval(healthCheckInterval);
   }
-  await neonClient.close();
   process.exit(0);
 });
 
+process.on('SIGTERM', () => {
+  console.log('[NEON] Fechando aplicação...');
+  if (healthCheckInterval) {
+    clearInterval(healthCheckInterval);
+  }
+  process.exit(0);
+});
+
+// Exporta as funções
 module.exports = { 
   neonQuery,
-  neonClient,
-  startHealthCheck,
-  NeonApiClient
+  neonTransaction,
+  neonHealthCheck,
+  getMetrics,
+  startHealthCheck
 };
