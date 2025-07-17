@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="container">
-
+    <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/LogoClaro2017.png" class="logo" alt="Logo Claro">
     <h2 style="text-align:center; margin-bottom: 18px;">Área do Síndico</h2>
     <div id="telaInicial">
       <h2>Você já é síndico cadastrado?</h2>
@@ -238,7 +238,7 @@
         senha: document.getElementById('cadSenha').value
       };
       try {
-        const resp = await fetch('https://chegarprimeiro-sem-cor.onrender.com/api/sindico', {
+        const resp = await fetch('https://chegar-primeiro.onrender.com/api/sindico', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dados)
@@ -269,7 +269,7 @@
         senha: document.getElementById('loginSenha').value
       };
       try {
-        const resp = await fetch('https://chegarprimeiro-sem-cor.onrender.com/api/sindico-login', {
+        const resp = await fetch('https://chegar-primeiro.onrender.com/api/sindico-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dados)
@@ -313,7 +313,7 @@
       const doc = document.getElementById('recDocumentoSindico').value.trim();
       if (!doc) return alert('Digite o CNPJ ou CPF!');
       try {
-        const resp = await fetch('https://chegarprimeiro-sem-cor.onrender.com/api/recuperar-email-sindico', {
+        const resp = await fetch('https://chegar-primeiro.onrender.com/api/recuperar-email-sindico', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ documento: doc })
@@ -336,7 +336,7 @@
     document.getElementById('btnEnviarCodigoRecSindico').addEventListener('click', async function() {
       const doc = window._recuperarSenhaSindico.documento;
       try {
-        const resp = await fetch('https://chegarprimeiro-sem-cor.onrender.com/api/enviar-codigo-recuperacao-sindico', {
+        const resp = await fetch('https://chegar-primeiro.onrender.com/api/enviar-codigo-recuperacao-sindico', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ documento: doc })
@@ -370,7 +370,7 @@
       if (!senha1 || senha1.length < 6) return alert('A senha deve ter pelo menos 6 caracteres.');
       if (senha1 !== senha2) return alert('As senhas não coincidem!');
       try {
-        const resp = await fetch('https://chegarprimeiro-sem-cor.onrender.com/api/trocar-senha-sindico', {
+        const resp = await fetch('https://chegar-primeiro.onrender.com/api/trocar-senha-sindico', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ documento: window._recuperarSenhaSindico.documento, codigo: window._recuperarSenhaSindico.codigo, novaSenha: senha1 })
@@ -410,7 +410,7 @@
         qualOperadora: document.getElementById('qualOperadora').value
       };
       try {
-        const resp = await fetch('https://chegarprimeiro-sem-cor.onrender.com/api/empreendimento', {
+        const resp = await fetch('https://chegar-primeiro.onrender.com/api/empreendimento', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dados)

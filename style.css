@@ -1,7 +1,7 @@
 .container {
   width: 350px;
   margin: 40px auto;
-  background: linear-gradient(to bottom, #225f9b 20%, #0b2b55 100%);
+  background: linear-gradient(to bottom, #7a1b2c 20%, #d31a20 100%);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   color: #fff;
@@ -16,16 +16,16 @@
   padding: 10px 0;
   text-align: center;
   cursor: pointer;
-  background: #444950;
+  background: #ff0b0b;
   border-radius: 12px 12px 0 0;
   margin-right: 2px;
   font-weight: bold;
   transition: background 0.2s;
-  color: #f1f1f1;
+  color: #fff;
 }
 .tab.active {
-  background: #f1f1f1;
-  color: #23272b;
+  background: #fff;
+  color: #ff0000;
 }
 .logo {
   display: block;
@@ -49,9 +49,15 @@ label {
   margin-top: 10px;
   font-size: 0.95em;
 }
-input[type="text"], input[type="date"], input[type="password"], input[type="email"], select, textarea {
-  background: #f1f1f1;
-  color: #23272b;
+input[type="text"], input[type="date"] {
+  width: 100%;
+  padding: 7px;
+  border: none;
+  border-radius: 4px;
+  margin-top: 2px;
+  margin-bottom: 6px;
+}
+input[type="password"] {
   width: 100%;
   padding: 7px;
   border: none;
@@ -59,6 +65,20 @@ input[type="text"], input[type="date"], input[type="password"], input[type="emai
   margin-top: 2px;
   margin-bottom: 6px;
   font-size: 1em;
+  background: #fff;
+  color: #333;
+  box-sizing: border-box;
+}
+input[type="email"] {
+  width: 100%;
+  padding: 7px;
+  border: none;
+  border-radius: 4px;
+  margin-top: 2px;
+  margin-bottom: 6px;
+  font-size: 1em;
+  background: #fff;
+  color: #333;
   box-sizing: border-box;
 }
 .row {
@@ -82,8 +102,8 @@ input[type="text"], input[type="date"], input[type="password"], input[type="emai
 .submit-btn {
   margin-top: 18px;
   padding: 10px;
-  background: #23272b;
-  color: #f1f1f1;
+  background: #fff;
+  color: #7a1b2c;
   border: none;
   border-radius: 6px;
   font-weight: bold;
@@ -92,8 +112,8 @@ input[type="text"], input[type="date"], input[type="password"], input[type="emai
 }
 .notification {
   margin-top: 18px;
-  background: #e2e3e5;
-  color: #23272b;
+  background: #fff3cd;
+  color: #856404;
   padding: 10px;
   border-radius: 6px;
   text-align: center;
@@ -113,8 +133,8 @@ input[type="text"], input[type="date"], input[type="password"], input[type="emai
   display: flex;
 }
 .modal-content {
-  background: #f1f1f1;
-  color: #23272b;
+  background: #fff;
+  color: #7a1b2c;
   border-radius: 12px;
   padding: 24px 18px 18px 18px;
   min-width: 340px;
@@ -126,7 +146,7 @@ input[type="text"], input[type="date"], input[type="password"], input[type="emai
   position: absolute;
   top: 10px; right: 18px;
   font-size: 2em;
-  color: #444950;
+  color: #a32c43;
   cursor: pointer;
 }
 .servicos-grid {
@@ -136,11 +156,11 @@ input[type="text"], input[type="date"], input[type="password"], input[type="emai
   justify-content: center;
 }
 .servico-card {
-  background: #f1f1f1;
+  background: #fff;
   border-radius: 10px;
   box-shadow: 0 1px 6px rgba(0,0,0,0.12);
-  border: 2px solid #444950;
-  color: #23272b;
+  border: 2px solid #a32c43;
+  color: #7a1b2c;
   width: 180px;
   padding: 16px 10px 12px 10px;
   display: flex;
@@ -150,8 +170,8 @@ input[type="text"], input[type="date"], input[type="password"], input[type="emai
   transition: box-shadow 0.2s, border 0.2s;
 }
 .servico-card:hover {
-  box-shadow: 0 4px 16px rgba(68,73,80,0.18);
-  border: 2px solid #23272b;
+  box-shadow: 0 4px 16px rgba(163,44,67,0.18);
+  border: 2px solid #ff0000;
 }
 .servico-titulo {
   font-weight: bold;
@@ -174,8 +194,8 @@ input[type="text"], input[type="date"], input[type="password"], input[type="emai
   margin-bottom: 8px;
 }
 .servico-btn {
-  background: #444950;
-  color: #f1f1f1;
+  background: #ff0000;
+  color: #fff;
   border: none;
   border-radius: 6px;
   padding: 6px 18px;
@@ -184,8 +204,8 @@ input[type="text"], input[type="date"], input[type="password"], input[type="emai
   font-size: 1em;
 }
 .select-service-btn {
-  background: #23272b;
-  color: #f1f1f1;
+  background: #ff0033;
+  color: #fff;
   border: none;
   border-radius: 6px;
   padding: 6px 12px;
@@ -195,7 +215,6 @@ input[type="text"], input[type="date"], input[type="password"], input[type="emai
 }
 body {
   font-family: Arial, sans-serif;
-  background: #23272b;
 }
 
 @media (max-width: 600px) {
@@ -206,7 +225,6 @@ body {
     padding: 4vw;
     box-sizing: border-box;
     border-radius: 0;
-    background: linear-gradient(to bottom, #424446 20%, #848a92 100%);
   }
   .modal-content {
     min-width: unset;
@@ -215,8 +233,6 @@ body {
     padding: 4vw 2vw;
     border-radius: 0;
     box-sizing: border-box;
-    background: #f1f1f1;
-    color: #23272b;
   }
   .servicos-grid {
     flex-direction: column;
@@ -228,15 +244,10 @@ body {
     max-width: 400px;
     min-width: unset;
     box-sizing: border-box;
-    background: #f1f1f1;
-    border: 2px solid #444950;
-    color: #23272b;
   }
   .tab {
     font-size: 1em;
     padding: 8px 0;
-    background: #444950;
-    color: #f1f1f1;
   }
   label {
     font-size: 1em;
@@ -250,8 +261,6 @@ body {
     max-width: 100%;
     box-sizing: border-box;
     margin-bottom: 14px;
-    background: #f1f1f1;
-    color: #23272b;
   }
   .row {
     flex-direction: column;
@@ -267,8 +276,6 @@ body {
     padding: 14px 0;
     width: 100%;
     box-sizing: border-box;
-    background: #23272b;
-    color: #f1f1f1;
   }
   .modal-servicos {
     align-items: flex-start;
@@ -288,7 +295,6 @@ body {
     width: fit-content;
     margin-left: auto;
     margin-right: 0;
-    color: #444950;
   }
   .servico-contratado-row {
     display: flex;
@@ -299,8 +305,6 @@ body {
     width: 100%;
     margin-left: 0;
     margin-top: 0;
-    background: #23272b;
-    color: #f1f1f1;
   }
 }
 
@@ -319,8 +323,8 @@ body {
   margin-bottom: 6px;
 }
 .remove-servico-btn {
-  background: #444950;
-  color: #f1f1f1;
+  background: #ff0033;
+  color: #fff;
   border: none;
   border-radius: 6px;
   font-size: 1.3em;
@@ -333,9 +337,7 @@ body {
   align-items: center;
   justify-content: center;
 }
-#formLogin input[type="text"], #formLogin input[type="password"], #formLogin select, #formLogin textarea {
-  background: #f1f1f1;
-  color: #23272b;
+#formLogin input[type="text"], #formLogin input[type="password"] {
   width: 100%;
   padding: 7px;
   border: none;
@@ -343,15 +345,13 @@ body {
   margin-top: 2px;
   margin-bottom: 6px;
   font-size: 1em;
+  background: #fff;
+  color: #333;
   box-sizing: border-box;
 }
 #formCadastro input[type="text"],
 #formCadastro input[type="email"],
-#formCadastro input[type="password"],
-#formCadastro select,
-#formCadastro textarea {
-  background: #f1f1f1 !important;
-  color: #23272b !important;
+#formCadastro input[type="password"] {
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
@@ -362,25 +362,68 @@ body {
   margin-top: 2px;
   margin-bottom: 6px;
   font-size: 1em;
-}
-#modalRecuperarSenha input[type="text"],
-#modalRecuperarSenha input[type="password"],
-#modalRecuperarSenha select,
-#modalRecuperarSenha textarea {
   background: #fff;
-  color: #23272b;
+  color: #333;
+} 
+#modalRecuperarSenha input[type="text"],
+#modalRecuperarSenha input[type="password"] {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  background: #f7f7f7;
+  color: #222;
   margin: 8px 0 12px 0;
   font-size: 1em;
   box-sizing: border-box;
   box-shadow: 0 1px 3px #0001;
 }
 #modalRecuperarSenha label {
-  color: #23272b;
+  color: #222;
   font-weight: 500;
   margin-bottom: 2px;
   display: block;
+} 
+
+/* Padronização dos campos de formulário */
+.container form input[type="text"],
+.container form input[type="email"],
+.container form input[type="password"],
+.container form input[type="number"],
+.container form input[type="date"],
+.container form select,
+.container form textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  margin-top: 2px;
+  margin-bottom: 12px;
+  font-size: 1em;
+  background: #fff;
+  color: #333;
+  display: block;
+}
+
+.container form label {
+  margin-top: 8px;
+  margin-bottom: 2px;
+  font-size: 1em;
+  font-weight: 500;
+  color: #fff;
+  display: block;
+}
+
+.container {
+  background: linear-gradient(to bottom, #7a1b2c 20%, #d31a20 100%);
+}
+
+.container form select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: #fff url('data:image/svg+xml;utf8,<svg fill="%237a1b2c" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 10px center/18px 18px;
 } 
