@@ -283,6 +283,73 @@
           // Garante que o formulário de empreendimento está visível
           var formEmp = document.getElementById('formEmpreendimento');
           if(formEmp) formEmp.style.display = 'block';
+
+          // Preencher campos com dados do síndico
+          const sindico = result.sindico;
+          if (sindico) {
+            document.getElementById('nomeSindico').value = sindico.nome || '';
+            document.getElementById('emailSindico').value = sindico.email || '';
+            document.getElementById('telSindico').value = sindico.telefone || '';
+            // Empreendimentos pode ser string ou array
+            let empreendimentos = [];
+            try {
+              if (typeof sindico.empreendimentos === 'string') {
+                empreendimentos = JSON.parse(sindico.empreendimentos);
+              } else if (Array.isArray(sindico.empreendimentos)) {
+                empreendimentos = sindico.empreendimentos;
+              }
+            } catch (e) {
+              empreendimentos = [];
+            }
+            // Trocar campo nomeEmpreendimento por select se mais de um
+            const nomeEmpDiv = document.getElementById('nomeEmpreendimento').parentNode;
+            let nomeEmpInput = document.getElementById('nomeEmpreendimento');
+            let selectId = 'nomeEmpreendimentoSelect';
+            let selectExistente = document.getElementById(selectId);
+            if (empreendimentos.length > 1) {
+              // Remove input se existir
+              if (nomeEmpInput && nomeEmpInput.tagName === 'INPUT') {
+                nomeEmpDiv.removeChild(nomeEmpInput);
+              }
+              // Cria select se não existir
+              if (!selectExistente) {
+                const select = document.createElement('select');
+                select.id = selectId;
+                select.name = 'nomeEmpreendimento';
+                select.required = true;
+                select.style.marginBottom = '12px';
+                empreendimentos.forEach(emp => {
+                  const opt = document.createElement('option');
+                  opt.value = emp;
+                  opt.textContent = emp;
+                  select.appendChild(opt);
+                });
+                nomeEmpDiv.insertBefore(select, nomeEmpDiv.querySelector('label + *'));
+              } else {
+                // Atualiza opções se já existir
+                selectExistente.innerHTML = '';
+                empreendimentos.forEach(emp => {
+                  const opt = document.createElement('option');
+                  opt.value = emp;
+                  opt.textContent = emp;
+                  selectExistente.appendChild(opt);
+                });
+              }
+            } else {
+              // Se só tem um, garantir que é input e preencher
+              if (selectExistente) {
+                nomeEmpDiv.removeChild(selectExistente);
+              }
+              if (!nomeEmpInput) {
+                nomeEmpInput = document.createElement('input');
+                nomeEmpInput.type = 'text';
+                nomeEmpInput.id = 'nomeEmpreendimento';
+                nomeEmpInput.required = true;
+                nomeEmpDiv.appendChild(nomeEmpInput);
+              }
+              nomeEmpInput.value = empreendimentos[0] || '';
+            }
+          }
         } else {
           notification.innerText = 'Documento ou senha inválidos!';
         }

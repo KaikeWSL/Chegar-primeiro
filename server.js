@@ -737,6 +737,30 @@ app.post('/api/empreendimento-construtora', upload.fields([
   }
 });
 
+// === Cadastro de Construtora ===
+app.post('/api/construtora', async (req, res) => {
+  const { nome, cnpj, senha } = req.body;
+  if (!nome || !cnpj || !senha) {
+    return res.status(400).json({ success: false, error: 'Campos obrigatórios faltando' });
+  }
+  try {
+    // Verifica duplicidade de CNPJ
+    const existe = await executarQuery('SELECT 1 FROM construtoras WHERE cnpj = $1', [cnpj]);
+    if (existe.rows.length > 0) {
+      return res.status(200).json({ success: false, error: 'Já existe cadastro com este CNPJ.' });
+    }
+    const senhaHash = await bcrypt.hash(senha, 10);
+    await executarQuery(
+      'INSERT INTO construtoras (nome, cnpj, senha) VALUES ($1, $2, $3)',
+      [nome, cnpj, senhaHash]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[ERRO] Falha ao cadastrar construtora:', err);
+    res.status(500).json({ success: false, error: 'Erro ao cadastrar construtora' });
+  }
+});
+
 // Endpoint para cadastro de síndico
 app.post('/api/sindico', async (req, res) => {
   const { nome, documento, email, telefone, empreendimentos, senha } = req.body;
@@ -777,7 +801,9 @@ app.post('/api/sindico-login', async (req, res) => {
     if (!senhaOk) {
       return res.status(200).json({ success: false, error: 'Documento ou senha inválidos' });
     }
-    res.json({ success: true });
+    // Remove a senha antes de retornar
+    delete sindico.senha;
+    res.json({ success: true, sindico });
   } catch (err) {
     console.error('[ERRO] Falha no login de síndico:', err);
     res.status(500).json({ success: false, error: 'Erro ao fazer login' });
