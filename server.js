@@ -382,28 +382,74 @@ app.post('/api/login', async (req, res) => {
   const { cpf, senha } = req.body;
   console.log(`[${new Date().toISOString()}] [INFO] POST /api/login - Tentativa de login para CPF: ${cpf?.substring(0, 3)}***`);
   
+  // Validações básicas
+  if (!cpf || !senha) {
+    console.log(`[${new Date().toISOString()}] [WARN] Login falhou: CPF ou senha não fornecidos`);
+    return res.status(400).json({ success: false, error: 'CPF e senha são obrigatórios' });
+  }
+  
   try {
+    // Primeiro, vamos ver a estrutura exata do que temos no banco
     const result = await executarQuery('SELECT * FROM clientes WHERE cpf = $1', [cpf]);
+    console.log(`[${new Date().toISOString()}] [INFO] Query executada, resultados encontrados: ${result.rows.length}`);
+    
     if (result.rows.length === 0) {
       console.log(`[${new Date().toISOString()}] [WARN] Login falhou: CPF não encontrado`);
       return res.status(401).json({ success: false, error: 'CPF ou senha inválidos' });
     }
     
     const cliente = result.rows[0];
-    console.log(`[${new Date().toISOString()}] [INFO] Cliente encontrado, verificando senha`);
     
-    const senhaOk = await bcrypt.compare(senha, cliente.senha);
+    // Log detalhado dos campos disponíveis (sem expor senhas)
+    const camposCliente = Object.keys(cliente);
+    console.log(`[${new Date().toISOString()}] [INFO] Campos disponíveis no cliente:`, camposCliente);
+    console.log(`[${new Date().toISOString()}] [INFO] Cliente encontrado:`, {
+      id: cliente.id,
+      nome: cliente.nome,
+      cpf: cliente.cpf?.substring(0, 3) + '***',
+      email: cliente.email,
+      temSenha: !!(cliente.senha_hash || cliente.senha),
+      temSenhaHash: !!cliente.senha_hash,
+      temSenhaSimples: !!cliente.senha
+    });
+    
+    // Verificar se o cliente tem senha cadastrada (verificar ambos os campos possíveis)
+    const senhaHash = cliente.senha_hash || cliente.senha;
+    if (!senhaHash) {
+      console.log(`[${new Date().toISOString()}] [WARN] Login falhou: cliente sem senha cadastrada`);
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Senha não cadastrada. Entre em contato com o suporte.' 
+      });
+    }
+    
+    console.log(`[${new Date().toISOString()}] [INFO] Verificando senha... (hash length: ${senhaHash.length})`);
+    
+    // Verificar se parece um hash bcrypt válido
+    if (!senhaHash.startsWith('$2b$') && !senhaHash.startsWith('$2a$') && !senhaHash.startsWith('$2y$')) {
+      console.log(`[${new Date().toISOString()}] [WARN] Senha não parece ser um hash bcrypt válido`);
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Senha em formato inválido. Entre em contato com o suporte.' 
+      });
+    }
+    
+    const senhaOk = await bcrypt.compare(senha, senhaHash);
     if (!senhaOk) {
       console.log(`[${new Date().toISOString()}] [WARN] Login falhou: senha incorreta`);
       return res.status(401).json({ success: false, error: 'CPF ou senha inválidos' });
     }
     
-    delete cliente.senha;
-    console.log(`[${new Date().toISOString()}] [INFO] Login realizado com sucesso`);
-    res.status(200).json({ success: true, cliente });
+    // Remover senhas do objeto antes de retornar
+    const clienteSeguro = { ...cliente };
+    delete clienteSeguro.senha;
+    delete clienteSeguro.senha_hash;
+    
+    console.log(`[${new Date().toISOString()}] [INFO] Login realizado com sucesso para cliente: ${clienteSeguro.nome}`);
+    res.status(200).json({ success: true, cliente: clienteSeguro });
   } catch (err) {
     console.error(`[${new Date().toISOString()}] [ERROR] Erro no endpoint /api/login:`, err);
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: 'Erro interno do servidor. Tente novamente.' });
   }
 });
 
