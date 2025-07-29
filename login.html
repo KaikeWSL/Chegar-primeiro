@@ -102,6 +102,10 @@
         <button type="button" onclick="window.location.href='cadastro.html'" class="link-btn">
           ➕ Não tenho cadastro
         </button>
+        
+        <button type="button" onclick="testarClienteExiste()" class="link-btn" style="background: #17a2b8; color: white;">
+          🔍 Testar se CPF existe
+        </button>
       </div>
 
       <!-- Informações de segurança -->
@@ -247,29 +251,60 @@
           try {
             toggleLoading(true);
             
-            // Chamar API do Neon Database
-            const response = await fetch(`https://chegar-primeiro.onrender.com/api/clientes/${cpf}`);
+            console.log('Enviando dados de login:', { 
+              cpf: cpf, 
+              cpfLength: cpf.length,
+              senhaLength: senha.length,
+              cpfOriginal: document.getElementById('loginCpf').value
+            });
             
-            if (response.ok) {
-              const clienteData = await response.json();
+            // Usar a API de login correta com verificação de senha
+            const response = await fetch('https://chegar-primeiro.onrender.com/api/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                cpf: cpf,
+                senha: senha
+              })
+            });
+            
+            console.log('Status da resposta:', response.status);
+            console.log('Headers da resposta:', Object.fromEntries(response.headers));
+            
+            let data;
+            try {
+              data = await response.json();
+              console.log('Resposta do servidor (parsed):', data);
+            } catch (parseError) {
+              const textResponse = await response.text();
+              console.error('Erro ao fazer parse da resposta JSON:', parseError);
+              console.log('Resposta como texto:', textResponse);
+              throw new Error('Resposta do servidor não é um JSON válido');
+            }
+            
+            if (response.ok && data.success) {
+              // Login bem-sucedido
+              console.log('Salvando dados do usuário:', data.cliente);
+              localStorage.setItem('userAuthenticated', 'true');
+              localStorage.setItem('userData', JSON.stringify(data.cliente));
               
-              // Verificar senha (simulado)
-              if (senha === '123456' || senha === 'claro123') {
-                // Salvar dados de autenticação
-                localStorage.setItem('userAuthenticated', 'true');
-                localStorage.setItem('userData', JSON.stringify(clienteData));
-                
-                mostrarNotificacao('Login realizado com sucesso!', 'success');
-                
-                // Redirecionar após sucesso
-                setTimeout(() => {
-                  window.location.href = 'dashboard.html';
-                }, 1000);
-              } else {
-                mostrarNotificacao('Senha incorreta', 'error');
-              }
+              mostrarNotificacao('Login realizado com sucesso!', 'success');
+              
+              // Redirecionar após sucesso
+              setTimeout(() => {
+                window.location.href = 'dashboard.html';
+              }, 1000);
             } else {
-              mostrarNotificacao('CPF não encontrado', 'error');
+              // Login falhou
+              const errorMessage = data.error || 'CPF ou senha inválidos';
+              console.error('Login falhou:', {
+                status: response.status,
+                error: errorMessage,
+                fullResponse: data
+              });
+              mostrarNotificacao(errorMessage, 'error');
             }
             
           } catch (error) {
@@ -349,6 +384,37 @@
       const overlay = document.getElementById('loadingOverlay');
       if (overlay) {
         overlay.style.display = show ? 'flex' : 'none';
+      }
+    }
+
+    // Função para testar se cliente existe
+    async function testarClienteExiste() {
+      const cpf = document.getElementById('loginCpf').value.replace(/\D/g, '');
+      
+      if (!cpf || cpf.length !== 11) {
+        mostrarNotificacao('Digite um CPF válido para testar', 'error');
+        return;
+      }
+      
+      try {
+        toggleLoading(true);
+        console.log('Testando se cliente existe:', cpf);
+        
+        const response = await fetch(`https://chegar-primeiro.onrender.com/api/debug/cliente-existe/${cpf}`);
+        const data = await response.json();
+        
+        console.log('Resultado do teste:', data);
+        
+        if (data.existe) {
+          mostrarNotificacao(`✅ Cliente encontrado: ${data.nome} - Tem senha: ${data.tem_senha ? 'Sim' : 'Não'}`, 'success');
+        } else {
+          mostrarNotificacao('❌ Cliente não encontrado. Faça o cadastro primeiro.', 'error');
+        }
+      } catch (error) {
+        console.error('Erro no teste:', error);
+        mostrarNotificacao('Erro ao testar. Verifique a conexão.', 'error');
+      } finally {
+        toggleLoading(false);
       }
     }
   </script>

@@ -949,6 +949,11 @@
           throw new Error('Email inválido');
         }
         
+        // Verificar se email foi validado
+        if (!emailVerificado) {
+          throw new Error('Por favor, verifique seu email antes de continuar');
+        }
+        
         if (!cep || cep.length !== 8) {
           throw new Error('CEP inválido');
         }

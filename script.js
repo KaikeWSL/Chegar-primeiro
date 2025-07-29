@@ -1,5 +1,31 @@
 // === SISTEMA DE SEGURANÇA E VALIDAÇÃO ===
 
+// Função auxiliar para acessar elementos com segurança
+function safeGetElement(id) {
+  return document.getElementById(id);
+}
+
+function safeSetStyle(elementId, property, value) {
+  const element = safeGetElement(elementId);
+  if (element) {
+    element.style[property] = value;
+  }
+}
+
+function safeSetHTML(elementId, html) {
+  const element = safeGetElement(elementId);
+  if (element) {
+    element.innerHTML = html;
+  }
+}
+
+function safeSetValue(elementId, value) {
+  const element = safeGetElement(elementId);
+  if (element) {
+    element.value = value;
+  }
+}
+
 // Configuração de segurança
 const SECURITY_CONFIG = {
   maxLoginAttempts: 5,
@@ -105,7 +131,8 @@ class SecurityManager {
   }
 
   handleSessionTimeout() {
-    if (document.getElementById('areaAutenticada').style.display !== 'none') {
+    const areaAutenticada = document.getElementById('areaAutenticada');
+    if (areaAutenticada && areaAutenticada.style.display !== 'none') {
       this.logout();
       mostrarMensagem('Sessão expirada por inatividade. Faça login novamente.', false);
     }
@@ -308,10 +335,15 @@ function detectDocumentType(value) {
 // === FUNÇÕES DE NAVEGAÇÃO PRINCIPAIS ===
 
 function mostrarLogin() {
-  document.getElementById('telaInicial').style.display = 'none';
-  document.getElementById('formLogin').style.display = 'flex';
-  document.getElementById('formCadastro').style.display = 'none';
-  document.getElementById('areaAutenticada').style.display = 'none';
+  const telaInicial = document.getElementById('telaInicial');
+  const formLogin = document.getElementById('formLogin');
+  const formCadastro = document.getElementById('formCadastro');
+  const areaAutenticada = document.getElementById('areaAutenticada');
+  
+  if (telaInicial) telaInicial.style.display = 'none';
+  if (formLogin) formLogin.style.display = 'flex';
+  if (formCadastro) formCadastro.style.display = 'none';
+  if (areaAutenticada) areaAutenticada.style.display = 'none';
   
   // Adiciona classe para aplicar layout centralizado
   document.body.classList.remove('cadastro-ativo');
@@ -319,10 +351,15 @@ function mostrarLogin() {
 }
 
 function mostrarCadastro() {
-  document.getElementById('telaInicial').style.display = 'none';
-  document.getElementById('formLogin').style.display = 'none';
-  document.getElementById('formCadastro').style.display = 'flex';
-  document.getElementById('areaAutenticada').style.display = 'none';
+  const telaInicial = document.getElementById('telaInicial');
+  const formLogin = document.getElementById('formLogin');
+  const formCadastro = document.getElementById('formCadastro');
+  const areaAutenticada = document.getElementById('areaAutenticada');
+  
+  if (telaInicial) telaInicial.style.display = 'none';
+  if (formLogin) formLogin.style.display = 'none';
+  if (formCadastro) formCadastro.style.display = 'flex';
+  if (areaAutenticada) areaAutenticada.style.display = 'none';
   
   // Adiciona classe para resetar layout para cadastro
   document.body.classList.remove('login-ativo');
@@ -330,10 +367,15 @@ function mostrarCadastro() {
 }
 
 function voltarInicio() {
-  document.getElementById('telaInicial').style.display = 'block';
-  document.getElementById('formLogin').style.display = 'none';
-  document.getElementById('formCadastro').style.display = 'none';
-  document.getElementById('areaAutenticada').style.display = 'none';
+  const telaInicial = document.getElementById('telaInicial');
+  const formLogin = document.getElementById('formLogin');
+  const formCadastro = document.getElementById('formCadastro');
+  const areaAutenticada = document.getElementById('areaAutenticada');
+  
+  if (telaInicial) telaInicial.style.display = 'block';
+  if (formLogin) formLogin.style.display = 'none';
+  if (formCadastro) formCadastro.style.display = 'none';
+  if (areaAutenticada) areaAutenticada.style.display = 'none';
   
   // Remove todas as classes e aplica layout centralizado para tela inicial
   document.body.classList.remove('cadastro-ativo', 'login-ativo');
@@ -382,15 +424,35 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('formTrocaServico'),
       document.getElementById('acompanharSolicitacao')
     ];
-    document.querySelectorAll('.tab').forEach((tab, i) => {
-      tab.classList.toggle('active', i === idx);
-      forms[i].style.display = i === idx ? 'block' : 'none';
-    });
-    if (idx === 2) {
-      document.getElementById('resultadoAcompanhamento').innerHTML = '';
-      document.getElementById('inputProtocolo').value = '';
+    
+    // Só processa se pelo menos um formulário existir
+    if (forms.some(form => form !== null)) {
+      document.querySelectorAll('.tab').forEach((tab, i) => {
+        if (tab) {
+          tab.classList.toggle('active', i === idx);
+        }
+        if (forms[i]) {
+          forms[i].style.display = i === idx ? 'block' : 'none';
+        }
+      });
+      
+      if (idx === 2) {
+        const resultadoAcompanhamento = document.getElementById('resultadoAcompanhamento');
+        const inputProtocolo = document.getElementById('inputProtocolo');
+        
+        if (resultadoAcompanhamento) {
+          resultadoAcompanhamento.innerHTML = '';
+        }
+        if (inputProtocolo) {
+          inputProtocolo.value = '';
+        }
+      }
+      
+      const notification = document.getElementById('notification');
+      if (notification) {
+        notification.style.display = 'none';
+      }
     }
-    document.getElementById('notification').style.display = 'none';
   }
 
   // === INICIALIZAÇÃO DE RECURSOS DE SEGURANÇA ===
@@ -502,7 +564,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const oldLength = this.value.length;
             this.value = config.formatter(this.value);
             const newLength = this.value.length;
-            this.setSelectionRange(cursorPos + (newLength - oldLength), cursorPos + (newLength - oldLength));
+            
+            // Verificar se o input suporta setSelectionRange (não funciona com email, search, etc.)
+            try {
+              if (this.type === 'text' || this.type === 'tel' || this.type === 'password') {
+                this.setSelectionRange(cursorPos + (newLength - oldLength), cursorPos + (newLength - oldLength));
+              }
+            } catch (e) {
+              // Silenciosamente ignorar erro para tipos de input que não suportam seleção
+              console.debug('setSelectionRange não suportado para input tipo:', this.type);
+            }
           }
           
           validateField(this, config.validator, config.errorMessage, indicator);
@@ -631,22 +702,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function selecionarServico(nome, contexto) {
     if (contexto === 'cadastro') {
-      document.getElementById('cadServicoContainer').innerHTML = `
+      safeSetHTML('cadServicoContainer', `
         <div class="servico-contratado-row">
           <input type="text" id="cadServico" name="cadServico" value="${nome}" readonly style="flex:1; min-width:0;">
           <button type="button" class="remove-servico-btn" onclick="removerServicoCadastro()">&times;</button>
         </div>
-      `;
+      `);
       fecharModalServicos();
       return;
     }
     if (contexto === 'troca') {
-      document.getElementById('trocaServicoContainer').innerHTML = `
+      safeSetHTML('trocaServicoContainer', `
         <div class="servico-contratado-row">
           <input type="text" id="trocaNovoServico" value="${nome}" readonly style="flex:1; min-width:0;">
           <button type="button" class="remove-servico-btn" onclick="removerServicoTroca()">&times;</button>
         </div>
-      `;
+      `);
       fecharModalServicos();
       return;
     }
@@ -654,16 +725,16 @@ document.addEventListener('DOMContentLoaded', function() {
   window.selecionarServico = selecionarServico;
 
   function removerServicoCadastro() {
-    document.getElementById('cadServicoContainer').innerHTML = `
+    safeSetHTML('cadServicoContainer', `
       <button type="button" class="select-service-btn" onclick="abrirModalServicos('cadastro')" id="btnSelecionarServico">Selecionar serviço</button>
-    `;
+    `);
   }
   window.removerServicoCadastro = removerServicoCadastro;
 
   function removerServicoTroca() {
-    document.getElementById('trocaServicoContainer').innerHTML = `
+    safeSetHTML('trocaServicoContainer', `
       <button type="button" class="select-service-btn" onclick="abrirModalServicos('troca')" id="btnSelecionarNovoServico">Selecionar novo serviço</button>
-    `;
+    `);
   }
   window.removerServicoTroca = removerServicoTroca;
   function toggleClienteCampos() {
@@ -1205,13 +1276,19 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(() => preencherCamposCliente(cliente));
   }
 
-  // Inicializa abas
+  // Inicializa abas (apenas se os elementos existirem)
   showTab(0);
-  document.getElementById('formVistoria').style.display = 'block';
-  document.getElementById('formTrocaServico').style.display = 'none';
+  const formVistoria = document.getElementById('formVistoria');
+  const formTrocaServico = document.getElementById('formTrocaServico');
+  
+  if (formVistoria) {
+    formVistoria.style.display = 'block';
+  }
+  if (formTrocaServico) {
+    formTrocaServico.style.display = 'none';
+  }
 
   // Envio do formulário de manutenção autenticada
-  const formVistoria = document.getElementById('formVistoria');
   if (formVistoria) {
     formVistoria.addEventListener('submit', function(e) {
       e.preventDefault();

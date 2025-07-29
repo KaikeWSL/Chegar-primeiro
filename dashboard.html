@@ -218,37 +218,437 @@
       100% { transform: rotate(360deg);} 
     }
     
-    /* Estilo do header do dashboard */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    /* Container principal melhorado */
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      margin: 20px auto;
+      max-width: 1000px;
+      padding: 30px;
+    }
+    
+    /* Header do dashboard melhorado */
     .dashboard-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 0;
-      margin-bottom: 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 20px 0;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #f1f3f4;
+      background: linear-gradient(135deg, #d31a20 0%, #ff4757 100%);
+      border-radius: 15px;
+      padding: 20px 25px;
+      color: white;
+      box-shadow: 0 8px 25px rgba(211, 26, 32, 0.3);
+    }
+    
+    .dashboard-header .logo {
+      height: 45px;
+      filter: brightness(0) invert(1);
     }
     
     .user-info {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 20px;
       color: #fff;
+      font-weight: 500;
+    }
+    
+    .user-info span {
+      font-size: 16px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     }
     
     .btn-logout {
       background: rgba(255, 255, 255, 0.2);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: 13px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 25px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 500;
       cursor: pointer;
       transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
     }
     
     .btn-logout:hover {
       background: rgba(255, 255, 255, 0.3);
       border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Título principal */
+    h2 {
+      color: #2c3e50;
+      font-size: 28px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 30px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Sistema de abas melhorado */
+    .tabs {
+      display: flex;
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      gap: 5px;
+    }
+    
+    .tab {
+      flex: 1;
+      padding: 15px 20px;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      color: #6c757d;
+      background: transparent;
+      border: none;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .tab:hover {
+      background: rgba(211, 26, 32, 0.1);
+      color: #d31a20;
+      transform: translateY(-2px);
+    }
+    
+    .tab.active {
+      background: linear-gradient(135deg, #d31a20, #ff4757);
+      color: white;
+      box-shadow: 0 8px 20px rgba(211, 26, 32, 0.4);
+      transform: translateY(-3px);
+    }
+    
+    .tab.active::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+      pointer-events: none;
+    }
+    
+    /* Formulários melhorados */
+    #areaAutenticada > form, 
+    #areaAutenticada > div {
+      animation: slideIn 0.5s ease-out;
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e9ecef;
+    }
+    
+    #areaAutenticada > form h3,
+    #areaAutenticada > div h3 {
+      color: #2c3e50;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 3px solid #d31a20;
+      display: inline-block;
+    }
+    
+    /* Campos de entrada melhorados */
+    .field-container {
+      margin-bottom: 20px;
+    }
+    
+    .field-container label {
+      display: block;
+      margin-bottom: 8px;
+      color: #495057;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    
+    .field-container input,
+    .field-container textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e9ecef;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background: #fff;
+    }
+    
+    .field-container input:focus,
+    .field-container textarea:focus {
+      outline: none;
+      border-color: #d31a20;
+      box-shadow: 0 0 0 3px rgba(211, 26, 32, 0.1);
+      transform: translateY(-1px);
+    }
+    
+    .field-container input[readonly] {
+      background: #f8f9fa !important;
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+    
+    .field-container small {
+      display: block;
+      margin-top: 5px;
+      color: #6c757d;
+      font-size: 12px;
+    }
+    
+    /* Botões melhorados */
+    .submit-btn {
+      background: linear-gradient(135deg, #d31a20, #ff4757);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 15px 30px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 20px rgba(211, 26, 32, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      width: 100%;
+      margin-top: 20px;
+    }
+    
+    .submit-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px rgba(211, 26, 32, 0.4);
+      background: linear-gradient(135deg, #ff4757, #d31a20);
+    }
+    
+    .submit-btn:active {
+      transform: translateY(-1px);
+    }
+    
+    /* Modal de serviços melhorado */
+    .modal-servicos {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      position: relative;
+      animation: slideIn 0.4s ease;
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 28px;
+      color: #adb5bd;
+      cursor: pointer;
+      transition: color 0.3s ease;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #f8f9fa;
+    }
+    
+    .close-modal:hover {
+      color: #d31a20;
+      background: #ffebee;
+    }
+    
+    /* Cards de serviço melhorados */
+    .servicos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .servico-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border: 2px solid #e9ecef;
+      border-radius: 15px;
+      padding: 25px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .servico-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+      border-color: #d31a20;
+    }
+    
+    .servico-titulo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    
+    .servico-mega {
+      font-size: 32px;
+      font-weight: 800;
+      color: #d31a20;
+      margin: 15px 0;
+    }
+    
+    .servico-benef {
+      color: #6c757d;
+      font-size: 14px;
+      margin: 15px 0;
+      line-height: 1.4;
+    }
+    
+    .servico-preco {
+      font-size: 24px;
+      font-weight: 700;
+      color: #28a745;
+      margin: 15px 0;
+    }
+    
+    .servico-btn {
+      background: linear-gradient(135deg, #d31a20, #ff4757);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 12px 25px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    
+    .servico-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(211, 26, 32, 0.3);
+    }
+    
+    /* Responsividade melhorada */
+    @media (max-width: 768px) {
+      .container {
+        margin: 10px;
+        padding: 20px;
+        border-radius: 15px;
+      }
+      
+      .dashboard-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+      
+      .tabs {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .tab {
+        padding: 12px 15px;
+      }
+      
+      .servicos-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      h2 {
+        font-size: 24px;
+      }
+    }
+    
+    /* Indicadores de loading melhorados */
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #d31a20;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    
+    /* Notificações melhoradas */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      border-radius: 12px;
+      color: white;
+      font-weight: 500;
+      z-index: 10002;
+      transform: translateX(100%);
+      opacity: 0;
+      transition: all 0.4s ease;
+      max-width: 350px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    
+    .notification.success {
+      background: linear-gradient(135deg, #28a745, #20c997);
+    }
+    
+    .notification.error {
+      background: linear-gradient(135deg, #dc3545, #e74c3c);
+    }
+    
+    .notification.info {
+      background: linear-gradient(135deg, #17a2b8, #3498db);
     }
   </style>
   
@@ -267,7 +667,228 @@
       if (typeof initializeDashboard === 'function') {
         initializeDashboard();
       }
+      
+      // Adicionar event listeners para formulários
+      initializeFormHandlers();
+      
+      // Adicionar busca de CEP automática
+      initializeCepSearch();
+      
+      // Mostrar primeira aba por padrão
+      showTab(0);
     });
+
+    // Inicializar handlers dos formulários
+    function initializeFormHandlers() {
+      // Form de manutenção
+      const formVistoria = document.getElementById('formVistoria');
+      if (formVistoria) {
+        formVistoria.addEventListener('submit', handleVistoriaSubmit);
+      }
+      
+      // Form de troca de serviço
+      const formTroca = document.getElementById('formTrocaServico');
+      if (formTroca) {
+        formTroca.addEventListener('submit', handleTrocaSubmit);
+      }
+      
+      // Busca de protocolo
+      const btnBuscarProtocolo = document.getElementById('btnBuscarProtocolo');
+      if (btnBuscarProtocolo) {
+        btnBuscarProtocolo.addEventListener('click', buscarProtocolo);
+      }
+    }
+
+    // Inicializar busca de CEP
+    function initializeCepSearch() {
+      const cepField = document.getElementById('vistoriaCep');
+      if (cepField) {
+        cepField.addEventListener('blur', function() {
+          const cep = this.value.replace(/\D/g, '');
+          if (cep.length === 8) {
+            buscarEnderecoPorCep(cep);
+          }
+        });
+      }
+    }
+
+    // Buscar endereço por CEP
+    async function buscarEnderecoPorCep(cep) {
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+        
+        if (!data.erro) {
+          const enderecoCompleto = `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`;
+          document.getElementById('vistoriaEndereco').value = enderecoCompleto;
+          
+          // Salvar no localStorage para usar em outras abas
+          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+          userData.endereco = enderecoCompleto;
+          userData.cep = cep;
+          localStorage.setItem('userData', JSON.stringify(userData));
+          
+          showNotification('Endereço preenchido automaticamente!', 'success');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar CEP:', error);
+        showNotification('Não foi possível buscar o endereço', 'error');
+      }
+    }
+
+    // Handler para submit do formulário de manutenção
+    async function handleVistoriaSubmit(e) {
+      e.preventDefault();
+      
+      const formData = {
+        tipo: 'manutencao',
+        cpf: document.getElementById('vistoriaCpf').value.replace(/\D/g, ''),
+        nome: document.getElementById('vistoriaNomeCliente').value,
+        cep: document.getElementById('vistoriaCep').value.replace(/\D/g, ''),
+        endereco: document.getElementById('vistoriaEndereco').value,
+        apartamento: document.getElementById('vistoriaApartamento').value,
+        bloco: document.getElementById('vistoriaBloco').value,
+        telefone: document.getElementById('vistoriaTelefone').value.replace(/\D/g, ''),
+        descricao: document.getElementById('vistoriaDescricao').value,
+        horario_contato: document.getElementById('vistoriaHorario').value,
+        servico_atual: document.getElementById('vistoriaServicoAtual').value
+      };
+      
+      await submitSolicitacao(formData, 'Solicitação de manutenção enviada com sucesso!');
+    }
+
+    // Handler para submit do formulário de troca
+    async function handleTrocaSubmit(e) {
+      e.preventDefault();
+      
+      const novoServicoElement = document.querySelector('#trocaServicoContainer .servico-nome');
+      if (!novoServicoElement) {
+        showNotification('Por favor, selecione um novo serviço', 'error');
+        return;
+      }
+      
+      const formData = {
+        tipo: 'troca_servico',
+        cpf: document.getElementById('trocaCpf').value.replace(/\D/g, ''),
+        nome: document.getElementById('trocaNomeCliente').value,
+        endereco: document.getElementById('trocaEndereco').value,
+        apartamento: document.getElementById('trocaApartamento').value,
+        bloco: document.getElementById('trocaBloco').value,
+        servico_atual: document.getElementById('trocaServicoAtual').value,
+        novo_servico: novoServicoElement.textContent
+      };
+      
+      await submitSolicitacao(formData, 'Solicitação de troca de serviço enviada com sucesso!');
+    }
+
+    // Enviar solicitação para o servidor
+    async function submitSolicitacao(formData, successMessage) {
+      try {
+        showLoading(true);
+        
+        const response = await fetch('https://chegar-primeiro.onrender.com/api/solicitacoes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          showNotification(successMessage, 'success');
+          if (result.protocolo) {
+            showNotification(`Protocolo: ${result.protocolo}`, 'info');
+          }
+          // Limpar formulário específico
+          clearForm(formData.tipo);
+        } else {
+          showNotification(result.error || 'Erro ao enviar solicitação', 'error');
+        }
+      } catch (error) {
+        console.error('Erro ao enviar solicitação:', error);
+        showNotification('Erro de conexão. Tente novamente.', 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // Limpar formulário após envio
+    function clearForm(tipo) {
+      if (tipo === 'manutencao') {
+        document.getElementById('vistoriaDescricao').value = '';
+        document.getElementById('vistoriaHorario').value = '';
+      } else if (tipo === 'troca_servico') {
+        const container = document.getElementById('trocaServicoContainer');
+        container.innerHTML = '<button type="button" class="select-service-btn" onclick="abrirModalServicos(\'troca\')" id="btnSelecionarNovoServico">Selecionar novo serviço</button>';
+      }
+    }
+
+    // Buscar protocolo
+    async function buscarProtocolo() {
+      const protocolo = document.getElementById('inputProtocolo').value.trim();
+      
+      if (!protocolo) {
+        showNotification('Digite um número de protocolo', 'error');
+        return;
+      }
+      
+      try {
+        showLoading(true);
+        
+        const response = await fetch(`https://chegar-primeiro.onrender.com/api/solicitacoes/${protocolo}`);
+        const result = await response.json();
+        
+        const resultDiv = document.getElementById('resultadoAcompanhamento');
+        
+        if (response.ok) {
+          resultDiv.innerHTML = `
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #28a745;">
+              <h4 style="color: #28a745; margin-bottom: 15px;">✅ Protocolo Encontrado</h4>
+              <p><strong>Protocolo:</strong> ${result.protocolo}</p>
+              <p><strong>Tipo:</strong> ${result.tipo}</p>
+              <p><strong>Status:</strong> ${result.status || 'Em andamento'}</p>
+              <p><strong>Data:</strong> ${new Date(result.data_criacao).toLocaleDateString('pt-BR')}</p>
+              ${result.descricao ? `<p><strong>Descrição:</strong> ${result.descricao}</p>` : ''}
+            </div>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border-left: 4px solid #ffc107;">
+              <h4 style="color: #856404;">⚠️ Protocolo não encontrado</h4>
+              <p>Verifique se o número do protocolo está correto e tente novamente.</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Erro ao buscar protocolo:', error);
+        showNotification('Erro ao buscar protocolo', 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // Função para mostrar/ocultar loading
+    function showLoading(show) {
+      const overlay = document.getElementById('loadingOverlay');
+      if (overlay) {
+        overlay.style.display = show ? 'flex' : 'none';
+      }
+    }
+
+    // Função para mostrar notificações
+    function showNotification(message, type = 'info', duration = 5000) {
+      const notification = document.getElementById('notification');
+      if (!notification) return;
+      
+      notification.className = `notification show ${type}`;
+      notification.textContent = message;
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, duration);
+    }
 
     // Função para verificar autenticação
     function checkAuth() {
@@ -282,22 +903,72 @@
     // Função para carregar dados do usuário
     function loadUserData() {
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      console.log('Dados do usuário carregados:', userData);
+      
       if (userData.nome) {
         document.getElementById('welcomeUser').textContent = `Bem-vindo, ${userData.nome}!`;
         
-        // Preencher campos readonly
-        const fields = ['vistoriaNomeCliente', 'trocaNomeCliente'];
-        fields.forEach(fieldId => {
+        // Preencher todos os campos com dados do usuário
+        const fields = {
+          'vistoriaNomeCliente': userData.nome,
+          'trocaNomeCliente': userData.nome,
+          'vistoriaCpf': userData.cpf || '',
+          'trocaCpf': userData.cpf || '',
+          'vistoriaEndereco': userData.endereco || '',
+          'trocaEndereco': userData.endereco || '',
+          'vistoriaApartamento': userData.apartamento || '',
+          'trocaApartamento': userData.apartamento || '',
+          'vistoriaBloco': userData.bloco || '',
+          'trocaBloco': userData.bloco || '',
+          'vistoriaTelefone': userData.telefone || '',
+          'vistoriaServicoAtual': userData.servico_atual || 'Claro fibra 350 MEGA',
+          'trocaServicoAtual': userData.servico_atual || 'Claro fibra 350 MEGA',
+          'vistoriaCep': userData.cep || ''
+        };
+        
+        Object.entries(fields).forEach(([fieldId, value]) => {
           const field = document.getElementById(fieldId);
-          if (field) field.value = userData.nome;
+          if (field && value) {
+            field.value = value;
+          }
         });
         
-        const cpfFields = ['vistoriaCpf', 'trocaCpf'];
-        cpfFields.forEach(fieldId => {
-          const field = document.getElementById(fieldId);
-          if (field) field.value = userData.cpf || '';
-        });
+        // Formatar CPF e telefone se necessário
+        if (userData.cpf) {
+          const cpfFormatado = formatCPF(userData.cpf);
+          document.getElementById('vistoriaCpf').value = cpfFormatado;
+          document.getElementById('trocaCpf').value = cpfFormatado;
+        }
+        
+        if (userData.telefone) {
+          const telefoneFormatado = formatTelefone(userData.telefone);
+          document.getElementById('vistoriaTelefone').value = telefoneFormatado;
+        }
+        
+        if (userData.cep) {
+          const cepFormatado = formatCEP(userData.cep);
+          document.getElementById('vistoriaCep').value = cepFormatado;
+        }
       }
+    }
+
+    // Funções de formatação
+    function formatCPF(cpf) {
+      const cleanCpf = cpf.replace(/\D/g, '');
+      return cleanCpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
+    function formatTelefone(telefone) {
+      const cleanTel = telefone.replace(/\D/g, '');
+      if (cleanTel.length === 11) {
+        return cleanTel.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+      }
+      return telefone;
+    }
+
+    function formatCEP(cep) {
+      const cleanCep = cep.replace(/\D/g, '');
+      return cleanCep.replace(/(\d{5})(\d{3})/, '$1-$2');
     }
 
     // Função de logout
@@ -307,27 +978,51 @@
       window.location.href = 'index-principal.html';
     }
 
-    // Função para trocar abas
+    // Função para trocar abas (melhorada)
     function showTab(index) {
       // Remover classe active de todas as abas
       document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('#areaAutenticada > form, #areaAutenticada > div').forEach(form => {
+      
+      // Ocultar todos os formulários e seções
+      const forms = document.querySelectorAll('#formVistoria, #formTrocaServico, #acompanharSolicitacao');
+      forms.forEach(form => {
         form.style.display = 'none';
         form.classList.remove('active');
       });
       
       // Ativar aba selecionada
-      document.querySelectorAll('.tab')[index].classList.add('active');
-      
-      if (index === 0) {
-        document.getElementById('formVistoria').style.display = 'flex';
-        document.getElementById('formVistoria').classList.add('active');
-      } else if (index === 1) {
-        document.getElementById('formTrocaServico').style.display = 'flex';
-        document.getElementById('formTrocaServico').classList.add('active');
-      } else if (index === 2) {
-        document.getElementById('acompanharSolicitacao').style.display = 'block';
+      const tabs = document.querySelectorAll('.tab');
+      if (tabs[index]) {
+        tabs[index].classList.add('active');
       }
+      
+      // Mostrar conteúdo correspondente
+      switch(index) {
+        case 0:
+          const formVistoria = document.getElementById('formVistoria');
+          if (formVistoria) {
+            formVistoria.style.display = 'flex';
+            formVistoria.classList.add('active');
+          }
+          break;
+        case 1:
+          const formTroca = document.getElementById('formTrocaServico');
+          if (formTroca) {
+            formTroca.style.display = 'flex';
+            formTroca.classList.add('active');
+          }
+          break;
+        case 2:
+          const acompanhar = document.getElementById('acompanharSolicitacao');
+          if (acompanhar) {
+            acompanhar.style.display = 'block';
+            acompanhar.classList.add('active');
+          }
+          break;
+      }
+      
+      // Recarregar dados do usuário ao trocar de aba
+      loadUserData();
     }
 
     // Função para abrir modal de serviços
@@ -341,19 +1036,47 @@
       document.getElementById('modalServicos').style.display = 'none';
     }
 
-    // Função para selecionar serviço
+    // Função para selecionar serviço (melhorada)
     function selecionarServico(nomeServico, contexto) {
       const container = document.getElementById(contexto + 'ServicoContainer');
       if (container) {
         container.innerHTML = `
-          <div class="servico-selecionado">
-            <span class="servico-nome">${nomeServico}</span>
-            <button type="button" onclick="abrirModalServicos('${contexto}')" class="btn-alterar-servico">Alterar</button>
+          <div class="servico-selecionado" style="background: linear-gradient(135deg, #e8f5e8, #f0f9ff); border: 2px solid #28a745; border-radius: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span class="servico-nome" style="font-weight: 600; color: #155724; display: block;">${nomeServico}</span>
+              <small style="color: #6c757d;">Serviço selecionado</small>
+            </div>
+            <button type="button" onclick="abrirModalServicos('${contexto}')" class="btn-alterar-servico" style="background: #ffc107; border: none; border-radius: 20px; padding: 8px 15px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
+              🔄 Alterar
+            </button>
           </div>
         `;
       }
       fecharModalServicos();
+      showNotification('Serviço selecionado com sucesso!', 'success');
     }
+
+    // Melhorar estilo dos botões de seleção de serviço
+    function updateServiceButtonStyle() {
+      const selectButtons = document.querySelectorAll('.select-service-btn');
+      selectButtons.forEach(button => {
+        button.style.cssText = `
+          background: linear-gradient(135deg, #6c757d, #495057);
+          color: white;
+          border: none;
+          border-radius: 10px;
+          padding: 15px 20px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          width: 100%;
+          font-size: 14px;
+        `;
+      });
+    }
+
+    // Atualizar estilos na inicialização
+    setTimeout(updateServiceButtonStyle, 100);
   </script>
 </body>
 </html>

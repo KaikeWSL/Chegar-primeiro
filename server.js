@@ -377,10 +377,44 @@ app.get('/api/clientes/:cpf', async (req, res) => {
   }
 });
 
+// Endpoint de debug para verificar se cliente existe (sem informações sensíveis)
+app.get('/api/debug/cliente-existe/:cpf', async (req, res) => {
+  const { cpf } = req.params;
+  console.log(`[${new Date().toISOString()}] [DEBUG] Verificando se cliente existe: ${cpf?.substring(0, 3)}***`);
+  
+  try {
+    const result = await executarQuery('SELECT cpf, nome, email, id, created_at, senha_hash IS NOT NULL as tem_senha FROM clientes WHERE cpf = $1', [cpf]);
+    
+    if (result.rows.length === 0) {
+      return res.json({ existe: false, cpf: cpf?.substring(0, 3) + '***' });
+    }
+    
+    const cliente = result.rows[0];
+    return res.json({ 
+      existe: true, 
+      nome: cliente.nome,
+      email: cliente.email,
+      id: cliente.id,
+      cpf: cliente.cpf?.substring(0, 3) + '***',
+      tem_senha: cliente.tem_senha,
+      created_at: cliente.created_at
+    });
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] [ERROR] Erro no debug:`, err);
+    res.status(500).json({ error: 'Erro interno' });
+  }
+});
+
 // Endpoint de login de cliente
 app.post('/api/login', async (req, res) => {
   const { cpf, senha } = req.body;
   console.log(`[${new Date().toISOString()}] [INFO] POST /api/login - Tentativa de login para CPF: ${cpf?.substring(0, 3)}***`);
+  console.log(`[${new Date().toISOString()}] [DEBUG] Dados recebidos:`, { 
+    cpf, 
+    cpfLength: cpf?.length, 
+    senhaLength: senha?.length,
+    bodyKeys: Object.keys(req.body)
+  });
   
   // Validações básicas
   if (!cpf || !senha) {
@@ -390,12 +424,13 @@ app.post('/api/login', async (req, res) => {
   
   try {
     // Primeiro, vamos ver a estrutura exata do que temos no banco
+    console.log(`[${new Date().toISOString()}] [DEBUG] Executando query para buscar cliente...`);
     const result = await executarQuery('SELECT * FROM clientes WHERE cpf = $1', [cpf]);
     console.log(`[${new Date().toISOString()}] [INFO] Query executada, resultados encontrados: ${result.rows.length}`);
     
     if (result.rows.length === 0) {
-      console.log(`[${new Date().toISOString()}] [WARN] Login falhou: CPF não encontrado`);
-      return res.status(401).json({ success: false, error: 'CPF ou senha inválidos' });
+      console.log(`[${new Date().toISOString()}] [WARN] Login falhou: CPF não encontrado no banco`);
+      return res.status(401).json({ success: false, error: 'CPF não encontrado. Verifique se você já fez o cadastro.' });
     }
     
     const cliente = result.rows[0];
@@ -427,7 +462,7 @@ app.post('/api/login', async (req, res) => {
     
     // Verificar se parece um hash bcrypt válido
     if (!senhaHash.startsWith('$2b$') && !senhaHash.startsWith('$2a$') && !senhaHash.startsWith('$2y$')) {
-      console.log(`[${new Date().toISOString()}] [WARN] Senha não parece ser um hash bcrypt válido`);
+      console.log(`[${new Date().toISOString()}] [WARN] Senha não parece ser um hash bcrypt válido: ${senhaHash.substring(0, 10)}...`);
       return res.status(401).json({ 
         success: false, 
         error: 'Senha em formato inválido. Entre em contato com o suporte.' 
@@ -435,9 +470,11 @@ app.post('/api/login', async (req, res) => {
     }
     
     const senhaOk = await bcrypt.compare(senha, senhaHash);
+    console.log(`[${new Date().toISOString()}] [DEBUG] Resultado da comparação de senha: ${senhaOk}`);
+    
     if (!senhaOk) {
-      console.log(`[${new Date().toISOString()}] [WARN] Login falhou: senha incorreta`);
-      return res.status(401).json({ success: false, error: 'CPF ou senha inválidos' });
+      console.log(`[${new Date().toISOString()}] [WARN] Login falhou: senha incorreta para CPF ${cpf?.substring(0, 3)}***`);
+      return res.status(401).json({ success: false, error: 'Senha incorreta. Verifique sua senha e tente novamente.' });
     }
     
     // Remover senhas do objeto antes de retornar
