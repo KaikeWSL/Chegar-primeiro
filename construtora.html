@@ -84,6 +84,12 @@
     </form>
     <div class="notification" id="notificationConstrutora" style="display:none;"></div>
   </div>
+  <div id="globalLoading" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);z-index:99999;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px 40px;border-radius:12px;box-shadow:0 2px 16px #0002;display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <div class="spinner" style="border:6px solid #eee;border-top:6px solid #ff0000;border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite;"></div>
+      <span style="font-size:1.1em;color:#333;">Carregando...</span>
+    </div>
+  </div>
   <script>
     // Alternância de telas
     function mostrarLoginConstrutora() {
@@ -107,6 +113,7 @@
     // Cadastro de construtora
     document.getElementById('formCadastroConstrutora').addEventListener('submit', async function(e) {
       e.preventDefault();
+      showLoading();
       const erro = document.getElementById('erroCadastroConstrutora');
       erro.style.display = 'none';
       const dados = {
@@ -124,18 +131,22 @@
         if (result.success) {
           alert('Cadastro realizado com sucesso! Faça login para continuar.');
           voltarInicioConstrutora();
+          hideLoading();
         } else {
           erro.innerText = result.error || 'Erro ao cadastrar.';
           erro.style.display = 'block';
+          hideLoading();
         }
       } catch (err) {
         erro.innerText = 'Erro ao conectar com o servidor.';
         erro.style.display = 'block';
+        hideLoading();
       }
     });
     // Login de construtora
     document.getElementById('formLoginConstrutora').addEventListener('submit', async function(e) {
       e.preventDefault();
+      showLoading();
       const erro = document.getElementById('erroLoginConstrutora');
       erro.style.display = 'none';
       const dados = {
@@ -153,11 +164,14 @@
           document.getElementById('formLoginConstrutora').reset();
           document.getElementById('formLoginConstrutora').style.display = 'none';
           document.getElementById('formConstrutora').style.display = 'flex';
+          hideLoading();
         } else {
           erro.style.display = 'block';
+          hideLoading();
         }
       } catch (err) {
         erro.style.display = 'block';
+        hideLoading();
       }
     });
     // Inicialização
@@ -183,6 +197,7 @@
     // Envio do formulário
     document.getElementById('formConstrutora').addEventListener('submit', async function(e) {
       e.preventDefault();
+      showLoading();
       const notification = document.getElementById('notificationConstrutora');
       notification.style.display = 'block';
       notification.innerText = 'Enviando...';
@@ -219,14 +234,23 @@
           setTimeout(function() {
             notification.style.display = 'none';
             document.getElementById('formConstrutora').reset();
+            hideLoading();
           }, 4000);
         } else {
           notification.innerText = 'Erro ao salvar no banco de dados: ' + (result.error || 'Erro desconhecido');
+          hideLoading();
         }
       } catch (err) {
         notification.innerText = 'Erro ao conectar com o servidor.';
+        hideLoading();
       }
     });
+    function showLoading() {
+      document.getElementById('globalLoading').style.display = 'flex';
+    }
+    function hideLoading() {
+      document.getElementById('globalLoading').style.display = 'none';
+    }
   </script>
 </body>
 </html> 

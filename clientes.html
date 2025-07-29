@@ -3,170 +3,347 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Chegar Primeiro - Sistema seguro para clientes Claro solicitarem serviços e manutenções">
+  <meta name="keywords" content="Claro, serviços, manutenção, clientes, internet, telefone">
+  <meta name="author" content="Claro">
+  <meta name="robots" content="noindex, nofollow">
+  
+  <!-- Segurança -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://chegar-primeiro.onrender.com https://viacep.com.br https://brasilapi.com.br; font-src 'self' data:;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  
+  <!-- PWA Support -->
+  <meta name="theme-color" content="#d31a20">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
   <title>Chegar Primeiro - Clientes</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="login-improvements.css">
+  <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📱</text></svg>">
 </head>
 <body>
   <div class="container">
     <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/LogoClaro2017.png" class="logo" alt="Logo Claro">
     <h2 style="text-align:center; margin-bottom: 18px;">Chegar Primeiro</h2>
     <div id="telaInicial">
-      <h2>Você já é cliente?</h2>
-      <div style="display:flex; gap:20px; justify-content:center; margin:24px 0;">
-        <button onclick="mostrarLogin()" class="submit-btn">Sim</button>
-        <button onclick="mostrarCadastro()" class="submit-btn">Não</button>
+      <h2>🏠 Você já é cliente?</h2>
+      <p style="color: rgba(255, 255, 255, 0.9); font-size: 16px; margin-bottom: 24px; line-height: 1.5;">
+        Escolha uma das opções abaixo para continuar
+      </p>
+      <div style="display:flex; gap:20px; justify-content:center; margin:24px 0; flex-wrap: wrap;">
+        <button onclick="mostrarLogin()" class="submit-btn">✅ Sim, sou cliente</button>
+        <button onclick="mostrarCadastro()" class="submit-btn">➕ Não, quero me cadastrar</button>
       </div>
     </div>
     <form id="formLogin" style="display:none; flex-direction:column;">
-      <h2>Login do Cliente</h2>
-      <label>CPF</label>
-      <input type="text" id="loginCpf" required>
-      <label>Senha</label>
-      <input type="password" id="loginSenha" required>
-      <button type="submit" class="submit-btn">Entrar</button>
-      <button type="button" onclick="voltarInicio()" class="submit-btn" style="background:#eee; color:#333; margin-top:8px;">Voltar</button>
-      <button type="button" id="btnEsqueciSenha" class="esqueci-senha-link">Esqueci minha senha</button>
+      <h2>🔐 Login do Cliente</h2>
+      
+      <div class="field-container">
+        <label>👤 CPF</label>
+        <div class="input-with-suggestions">
+          <input type="text" id="loginCpf" required maxlength="14" autocomplete="username" placeholder="000.000.000-00">
+          <div class="suggestions-dropdown" id="cpfSuggestions"></div>
+        </div>
+        <small>Digite apenas números ou com formatação</small>
+      </div>
+      
+      <div class="field-container">
+        <label>🔒 Senha</label>
+        <div class="password-input-container">
+          <input type="password" id="loginSenha" required autocomplete="current-password" minlength="6" placeholder="Digite sua senha">
+          <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('loginSenha')">👁️</button>
+          <div class="password-strength-indicator" id="loginPasswordStrength"></div>
+        </div>
+        <small>Mínimo 6 caracteres</small>
+      </div>
+
+      <!-- Opções avançadas de login -->
+      <div class="login-options">
+        <div class="checkbox-container">
+          <input type="checkbox" id="rememberMe" class="custom-checkbox">
+          <label for="rememberMe" class="checkbox-label">
+            <span class="checkbox-icon">✓</span>
+            Lembrar de mim por 30 dias
+          </label>
+        </div>
+        
+        <div class="biometric-section" id="biometricSection" style="display: none;">
+          <button type="button" class="biometric-btn" id="biometricBtn">
+            🔒 Entrar com biometria
+          </button>
+          <small>Use sua impressão digital ou Face ID</small>
+        </div>
+        
+        <div class="two-factor-section" id="twoFactorSection" style="display: none;">
+          <label>🔐 Código de verificação</label>
+          <div class="verification-input-group">
+            <input type="text" id="twoFactorCode" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+            <button type="button" id="resendCodeBtn" class="btn-resend">Reenviar</button>
+          </div>
+          <small>Digite o código enviado para seu dispositivo</small>
+        </div>
+      </div>
+
+      <!-- Botões de ação -->
+      <div class="login-actions">
+        <button type="submit" class="submit-btn primary-btn">
+          <span class="btn-icon">�</span>
+          <span class="btn-text">Entrar</span>
+          <div class="loading-spinner" style="display: none;"></div>
+        </button>
+        
+        <button type="button" onclick="voltarInicio()" class="submit-btn secondary-btn">
+          <span class="btn-icon">⬅️</span>
+          <span class="btn-text">Voltar ao Início</span>
+        </button>
+      </div>
+
+      <!-- Links adicionais -->
+      <div class="login-links">
+        <button type="button" onclick="openAdvancedRecovery()" class="link-btn">
+          🔑 Esqueci minha senha
+        </button>
+        
+        <button type="button" id="btnSuporte" class="link-btn">
+          💬 Preciso de ajuda
+        </button>
+        
+        <button type="button" id="btnSeguranca" class="link-btn">
+          �️ Central de Segurança
+        </button>
+      </div>
+
+      <!-- Informações de segurança -->
+      <div class="security-info">
+        <div class="security-badge">
+          <span class="security-icon">🔒</span>
+          <div class="security-text">
+            <strong>Conexão Segura</strong>
+            <small>Seus dados estão protegidos com criptografia SSL</small>
+          </div>
+        </div>
+        
+        <div class="login-attempts" id="loginAttempts" style="display: none;">
+          <span class="warning-icon">⚠️</span>
+          <span id="attemptsText">Restam X tentativas</span>
+        </div>
+      </div>
     </form>
     <form id="formCadastro" style="display:none; flex-direction:column;">
-      <h2>Cadastro de Novo Cliente</h2>
-      <label>Nome Completo</label>
-      <input type="text" id="cadNome" required>
-      <label>CPF</label>
-      <input type="text" id="cadCpf" required>
-      <label>CEP</label>
-      <input type="text" id="cadCep" required>
-      <label>Email</label>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <input type="email" id="cadEmail" required>
-        <span id="iconeEmailVerificado" style="display:none;font-size:1.5em;color:#00ff37;">✔️</span>
+      <div class="form-header">
+        <h2>Cadastro de Novo Cliente</h2>
+        <p class="form-subtitle">Preencha seus dados para criar sua conta</p>
       </div>
-      <button type="button" id="btnVerificarEmail" class="submit-btn" style="padding:6px 14px;font-size:0.95em;display:none;margin-top:6px;">Verificar e-mail</button>
-      <div id="areaCodigoEmail" style="display:none;margin:8px 0 0 0;">
-        <label for="inputCodigoEmail" style="font-size:0.97em;">Digite o código recebido no e-mail:</label>
-        <input type="text" id="inputCodigoEmail" maxlength="6" style="width:140px;">
-        <button type="button" id="btnValidarCodigoEmail" class="submit-btn" style="padding:6px 14px;font-size:0.95em;">Validar código</button>
-        <span id="statusCodigoEmail" style="margin-left:10px;font-size:0.97em;"></span>
-      </div>
-      <label>Endereço</label>
-      <input type="text" id="cadEndereco" required>
-      <div class="row">
-        <div>
-          <label>Apartamento</label>
-          <input type="text" id="cadApartamento" required>
+
+      <!-- Seção Dados Pessoais -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">👤</div>
+          <h3>Dados Pessoais</h3>
         </div>
-        <div>
-          <label>Bloco</label>
-          <input type="text" id="cadBloco" required>
+        
+        <div class="form-row">
+          <div class="field-group full-width">
+            <label>Nome Completo <span class="required">*</span></label>
+            <input type="text" id="cadNome" required minlength="2" autocomplete="name" placeholder="Digite seu nome completo">
+            <div class="field-hint">Mínimo 2 caracteres</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field-group half-width">
+            <label>CPF/CNPJ <span class="required">*</span></label>
+            <input type="text" id="cadCpf" required maxlength="18" autocomplete="off" placeholder="000.000.000-00">
+          </div>
+          <div class="field-group half-width">
+            <label>Email <span class="required">*</span></label>
+            <div class="input-with-icon">
+              <input type="email" id="cadEmail" required autocomplete="email" placeholder="seu@email.com">
+              <span id="iconeEmailVerificado" class="input-icon verified-icon" style="display:none;">✔</span>
+            </div>
+            <button type="button" id="btnVerificarEmail" class="btn-secondary" style="display:none; margin-top:8px;">
+              Verificar e-mail
+            </button>
+            <div id="areaCodigoEmail" class="verification-area" style="display:none;">
+              <label class="verification-label">Digite o código recebido no e-mail:</label>
+              <div class="verification-input-group">
+                <input type="text" id="inputCodigoEmail" maxlength="6" class="verification-code" placeholder="000000">
+                <button type="button" id="btnValidarCodigoEmail" class="btn-verify">Validar</button>
+              </div>
+              <div id="statusCodigoEmail" class="verification-status"></div>
+            </div>
+          </div>
         </div>
       </div>
-      <label>Nome do empreendimento</label>
-      <input type="text" id="cadEmpreendimento">
-      <label>Serviço contratado</label>
-      <div class="servico-contratado-row" id="cadServicoContainer">
-        <button type="button" class="select-service-btn" onclick="abrirModalServicos('cadastro')" id="btnSelecionarServico">Selecionar serviço</button>
+
+      <!-- Seção Contato -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">📞</div>
+          <h3>Contato</h3>
+        </div>
+        
+        <div class="form-row">
+          <div class="field-group half-width">
+            <label>Telefone</label>
+            <input type="text" id="cadTelefone" autocomplete="tel" placeholder="(11) 99999-9999">
+            <div class="field-hint">Formato: (11) 99999-9999</div>
+          </div>
+          <div class="field-group half-width">
+            <label>Celular</label>
+            <input type="text" id="cadCelular" autocomplete="tel" placeholder="(11) 91234-5678">
+          </div>
+        </div>
       </div>
-      <label>Senha</label>
-      <input type="password" id="cadSenha" required>
-      <label>Confirmar senha</label>
-      <input type="password" id="cadSenha2" required>
-      <button type="submit" class="submit-btn">Cadastrar</button>
-      <button type="button" onclick="voltarInicio()" class="submit-btn" style="background:#eee; color:#333; margin-top:8px;">Voltar</button>
+
+      <!-- Seção Endereço -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">📍</div>
+          <h3>Endereço</h3>
+        </div>
+        
+        <div class="form-row">
+          <div class="field-group half-width">
+            <label>CEP <span class="required">*</span></label>
+            <input type="text" id="cadCep" required maxlength="9" autocomplete="postal-code" placeholder="00000-000">
+            <div class="field-hint">Preencheremos o endereço automaticamente</div>
+          </div>
+          <div class="field-group half-width">
+            <label>Logradouro <span class="required">*</span></label>
+            <input type="text" id="cadEndereco" required autocomplete="street-address" readonly class="readonly-field">
+            <div class="field-hint">Preenchido automaticamente pelo CEP</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field-group third-width">
+            <label>Número <span class="required">*</span></label>
+            <input type="text" id="cadNumero" required placeholder="123">
+          </div>
+          <div class="field-group third-width">
+            <label>Complemento</label>
+            <input type="text" id="cadComplemento" placeholder="Apto, Sala, etc.">
+          </div>
+          <div class="field-group third-width">
+            <label>Bairro</label>
+            <input type="text" id="cadBairro" readonly class="readonly-field">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field-group half-width">
+            <label>Cidade</label>
+            <input type="text" id="cadCidade" readonly class="readonly-field">
+          </div>
+          <div class="field-group quarter-width">
+            <label>Estado</label>
+            <select id="cadEstado" disabled class="readonly-field">
+              <option value="SP">SP</option>
+            </select>
+          </div>
+          <div class="field-group quarter-width">
+            <label>Apartamento</label>
+            <input type="text" id="cadApartamento" required placeholder="101">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field-group half-width">
+            <label>Bloco</label>
+            <input type="text" id="cadBloco" required placeholder="A">
+          </div>
+          <div class="field-group half-width">
+            <label>Nome do empreendimento</label>
+            <input type="text" id="cadEmpreendimento" placeholder="Nome do condomínio/residencial">
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção Serviço -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">📡</div>
+          <h3>Serviço Contratado</h3>
+        </div>
+        
+        <div class="form-row">
+          <div class="field-group full-width">
+            <label>Selecione seu plano</label>
+            <div class="servico-container" id="cadServicoContainer">
+              <button type="button" class="btn-select-service" onclick="abrirModalServicos('cadastro')" id="btnSelecionarServico">
+                <span class="btn-icon">+</span>
+                Selecionar serviço
+              </button>
+            </div>
+            <div class="field-hint">Escolha o plano que melhor atende suas necessidades</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção Dados de Acesso -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">🔒</div>
+          <h3>Dados de Acesso</h3>
+        </div>
+        
+        <div class="form-row">
+          <div class="field-group half-width">
+            <label>Senha <span class="required">*</span></label>
+            <div class="password-input-container">
+              <input type="password" id="cadSenha" required autocomplete="new-password" minlength="8" placeholder="Mínimo 8 caracteres">
+              <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('cadSenha')">👁</button>
+            </div>
+            <div class="password-requirements">
+              <div class="requirement-item" id="req-length">
+                <span class="requirement-icon">○</span>
+                <span>Mínimo 8 caracteres</span>
+              </div>
+              <div class="requirement-item" id="req-upper">
+                <span class="requirement-icon">○</span>
+                <span>Uma letra maiúscula</span>
+              </div>
+              <div class="requirement-item" id="req-lower">
+                <span class="requirement-icon">○</span>
+                <span>Uma letra minúscula</span>
+              </div>
+              <div class="requirement-item" id="req-number">
+                <span class="requirement-icon">○</span>
+                <span>Um número</span>
+              </div>
+              <div class="requirement-item" id="req-special">
+                <span class="requirement-icon">○</span>
+                <span>Um caractere especial</span>
+              </div>
+            </div>
+          </div>
+          <div class="field-group half-width">
+            <label>Confirmar Senha <span class="required">*</span></label>
+            <div class="password-input-container">
+              <input type="password" id="cadSenha2" required autocomplete="new-password" placeholder="Repita a senha">
+              <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('cadSenha2')">👁</button>
+            </div>
+            <div id="password-match-indicator" class="password-match-indicator"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">
+          <span class="btn-icon">✓</span>
+          Realizar Cadastro
+        </button>
+        <button type="button" onclick="voltarInicio()" class="btn-secondary">
+          <span class="btn-icon">←</span>
+          Voltar
+        </button>
+      </div>
     </form>
-    <div id="areaAutenticada" style="display:none;">
-      <div class="tabs">
-        <div class="tab active" onclick="showTab(0)">Manutenção</div>
-        <div class="tab" onclick="showTab(1)">Troca de Serviço</div>
-        <div class="tab" onclick="showTab(2)">Acompanhar Solicitação</div>
-      </div>
-      <form id="formVistoria" class="active">
-        <h3>Solicitar Manutenção</h3>
-        <label>Nome</label>
-        <input type="text" id="vistoriaNomeCliente">
-        <label>CPF</label>
-        <input type="text" id="vistoriaCpf" readonly>
-        <label>CEP</label>
-        <input type="text" id="vistoriaCep">
-        <label>Endereço</label>
-        <input type="text" id="vistoriaEndereco">
-        <label>Apartamento</label>
-        <input type="text" id="vistoriaApartamento">
-        <label>Bloco</label>
-        <input type="text" id="vistoriaBloco">
-        <label>Serviço atual</label>
-        <input type="text" id="vistoriaServicoAtual" readonly>
-        <label>Telefone de contato</label>
-        <input type="text" id="vistoriaTelefone">
-        <label>Descrição do problema</label>
-        <input type="text" id="vistoriaDescricao" required>
-        <label>Melhor horário de contato</label>
-        <input type="time" id="vistoriaHorario">
-        <button class="submit-btn" type="submit">Enviar</button>
-      </form>
-      <form id="formTrocaServico">
-        <h3>Troca de Serviço</h3>
-        <label>Nome</label>
-        <input type="text" id="trocaNomeCliente">
-        <label>CPF</label>
-        <input type="text" id="trocaCpf" readonly>
-        <label>Endereço</label>
-        <input type="text" id="trocaEndereco">
-        <label>Apartamento</label>
-        <input type="text" id="trocaApartamento">
-        <label>Bloco</label>
-        <input type="text" id="trocaBloco">
-        <label>Serviço atual</label>
-        <input type="text" id="trocaServicoAtual" readonly>
-        <label>Novo serviço</label>
-        <div class="servico-contratado-row" id="trocaServicoContainer">
-          <button type="button" class="select-service-btn" onclick="abrirModalServicos('troca')" id="btnSelecionarNovoServico">Selecionar novo serviço</button>
-        </div>
-        <button class="submit-btn" type="submit">Solicitar troca</button>
-      </form>
-      <div id="acompanharSolicitacao" style="display:none; margin-top:24px;">
-        <h3>Acompanhar Solicitação</h3>
-        <label for="inputProtocolo">Digite o número do protocolo:</label>
-        <div style="display:flex;flex-direction:column;align-items:flex-start;max-width:350px;gap:10px;">
-          <input type="text" id="inputProtocolo" style="width:100%;" placeholder="Número do protocolo">
-          <button type="button" class="submit-btn" id="btnBuscarProtocolo" style="align-self:flex-end;">Buscar</button>
-        </div>
-        <div id="resultadoAcompanhamento" style="margin-top:18px;"></div>
-      </div>
-    </div>
-    <div class="modal-servicos" id="modalServicos">
-      <div class="modal-content">
-        <span class="close-modal" onclick="fecharModalServicos()">&times;</span>
-        <div class="servicos-grid">
-          <div class="servico-card" onclick="selecionarServico('Claro fibra 350 MEGA + globoplay', window.modalServicoContexto)">
-            <div class="servico-titulo">Claro<span style='color:#ff0000'> fibra</span></div>
-            <div class="servico-mega">350 MEGA</div>
-            <div class="servico-benef">globoplay + Wi-Fi Grátis + McAfee + E-books</div>
-            <div class="servico-preco">R$ 79,90/mês</div>
-            <button type="button" class="servico-btn">Assine</button>
-          </div>
-          <div class="servico-card" onclick="selecionarServico('Claro fibra 600 MEGA + globoplay + Claro pós 60GB', window.modalServicoContexto)">
-            <div class="servico-titulo">Claro<span style='color:#ff0000'> fibra</span></div>
-            <div class="servico-mega">600 MEGA</div>
-            <div class="servico-benef">globoplay + Wi-Fi Grátis + Claro pós 60GB</div>
-            <div class="servico-preco">R$ 159,90/mês</div>
-            <button type="button" class="servico-btn">Assine</button>
-          </div>
-          <div class="servico-card" onclick="selecionarServico('Claro controle 30GB + bônus', window.modalServicoContexto)">
-            <div class="servico-titulo">Claro<span style='color:#ff0000'> controle</span></div>
-            <div class="servico-mega">30GB</div>
-            <div class="servico-benef">15GB + 5GB redes sociais + WhatsApp ilimitado + 10GB bônus</div>
-            <div class="servico-preco">R$ 59,90/mês</div>
-            <button type="button" class="servico-btn">Contrate</button>
-          </div>
-          <div class="servico-card" onclick="selecionarServico('Claro pós 50GB', window.modalServicoContexto)">
-            <div class="servico-titulo">Claro<span style='color:#ff0000'> pós</span></div>
-            <div class="servico-mega">50GB</div>
-            <div class="servico-benef">25GB + 25GB + WhatsApp ilimitado</div>
-            <div class="servico-preco">R$ 119,90/mês</div>
-            <button type="button" class="servico-btn">Contrate</button>
-          </div>
-        </div>
-      </div>
-    </div>
     <div class="notification" id="notification"></div>
   </div>
   <div id="loadingOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);z-index:10000;align-items:center;justify-content:center;">
@@ -205,33 +382,6 @@
   </div>
   <style>
     @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
-    .btn-copiar-protocolo {
-      background: #eafaf1;
-      color: #218838;
-      border: 1px solid #b7e4c7;
-      border-radius: 6px;
-      padding: 4px 14px;
-      font-size: 1em;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s, border 0.2s;
-      margin-left: 8px;
-    }
-    .btn-copiar-protocolo:hover {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-    .mensagem-feedback-erro .btn-copiar-protocolo {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-    .mensagem-feedback-erro .btn-copiar-protocolo:hover {
-      background: #f1b0b7;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
     .esqueci-senha-link {
       background: none;
       color: #008cff;
@@ -253,7 +403,76 @@
       text-decoration: underline;
       background: none;
     }
+    
+    /* Estilos para notificações */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      z-index: 10002;
+      transform: translateX(100%);
+      opacity: 0;
+      transition: all 0.3s ease;
+      max-width: 300px;
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    
+    .notification.success {
+      background: #28a745;
+    }
+    
+    .notification.error {
+      background: #dc3545;
+    }
+    
+    .notification.info {
+      background: #17a2b8;
+    }
   </style>
   <script src="script.js"></script>
+  <script>
+    // Verificar se o usuário está autenticado ao carregar a página
+    document.addEventListener('DOMContentLoaded', function() {
+      const isAuthenticated = localStorage.getItem('userAuthenticated');
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      
+      if (isAuthenticated === 'true' && userData.nome) {
+        // Usuário está autenticado, redirecionar para dashboard
+        window.location.href = 'dashboard.html';
+        return;
+      } else {
+        // Mostrar tela inicial
+        mostrarTelaInicial();
+      }
+    });
+
+    function mostrarTelaInicial() {
+      document.getElementById('telaInicial').style.display = 'block';
+      document.getElementById('formLogin').style.display = 'none';
+      document.getElementById('formCadastro').style.display = 'none';
+      document.body.className = 'inicio-ativo';
+    }
+
+    // Função para mostrar notificação
+    function mostrarNotificacao(mensagem, tipo = 'info', duracao = 5000) {
+      const notification = document.getElementById('notification');
+      if (!notification) return;
+      
+      notification.className = `notification show ${tipo}`;
+      notification.textContent = mensagem;
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, duracao);
+    }
+  </script>
 </body>
 </html> 

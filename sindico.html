@@ -95,6 +95,12 @@
     </div>
     <div class="notification" id="notification" style="display:none;"></div>
   </div>
+  <div id="globalLoading" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);z-index:99999;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px 40px;border-radius:12px;box-shadow:0 2px 16px #0002;display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <div class="spinner" style="border:6px solid #eee;border-top:6px solid #ff0000;border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite;"></div>
+      <span style="font-size:1.1em;color:#333;">Carregando...</span>
+    </div>
+  </div>
   <div id="modalRecuperarSenhaSindico" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);z-index:10001;align-items:center;justify-content:center;">
     <div style="background:#fff;padding:32px 28px 24px 28px;border-radius:12px;box-shadow:0 2px 16px #0002;min-width:320px;max-width:95vw;display:flex;flex-direction:column;align-items:center;position:relative;">
       <span style="position:absolute;top:10px;right:18px;font-size:2em;color:#a32c43;cursor:pointer;" onclick="fecharModalRecuperarSenhaSindico()">&times;</span>
@@ -145,6 +151,18 @@
       text-decoration: underline;
       background: none;
     }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+    .spinner {
+      border:6px solid #eee;
+      border-top:6px solid #ff0000;
+      border-radius:50%;
+      width:48px;
+      height:48px;
+      animation:spin 1s linear infinite;
+    }
   </style>
   <script>
     function mostrarLogin() {
@@ -164,6 +182,12 @@
       document.getElementById('formLogin').style.display = 'none';
       document.getElementById('formCadastro').style.display = 'none';
       document.getElementById('areaAutenticada').style.display = 'none';
+    }
+    function showLoading() {
+      document.getElementById('globalLoading').style.display = 'flex';
+    }
+    function hideLoading() {
+      document.getElementById('globalLoading').style.display = 'none';
     }
     // Adicionar mais empreendimentos (com botão de remover)
     document.getElementById('btnAddEmpreendimento').addEventListener('click', function() {
@@ -221,12 +245,14 @@
     // Cadastro de síndico
     document.getElementById('formCadastro').addEventListener('submit', async function(e) {
       e.preventDefault();
+      showLoading();
       const notification = document.getElementById('notification');
       notification.style.display = 'block';
       notification.innerText = 'Enviando...';
       const empreendimentos = Array.from(document.getElementsByClassName('cadEmpreendimento')).map(i => i.value.trim()).filter(Boolean);
       if (document.getElementById('cadSenha').value !== document.getElementById('cadSenha2').value) {
         notification.innerText = 'As senhas não coincidem!';
+        hideLoading();
         return;
       }
       const dados = {
@@ -250,17 +276,21 @@
             notification.style.display = 'none';
             document.getElementById('formCadastro').reset();
             voltarInicio();
+            hideLoading();
           }, 3000);
         } else {
           notification.innerText = 'Erro ao cadastrar: ' + (result.error || 'Erro desconhecido');
+          hideLoading();
         }
       } catch (err) {
         notification.innerText = 'Erro ao conectar com o servidor.';
+        hideLoading();
       }
     });
     // Login de síndico
     document.getElementById('formLogin').addEventListener('submit', async function(e) {
       e.preventDefault();
+      showLoading();
       const notification = document.getElementById('notification');
       notification.style.display = 'block';
       notification.innerText = 'Entrando...';
@@ -307,12 +337,23 @@
             let selectId = 'nomeEmpreendimentoSelect';
             let selectExistente = document.getElementById(selectId);
             if (empreendimentos.length > 1) {
-              // Remove input se existir
+              // Remove input se existir e insere o select na mesma posição
               if (nomeEmpInput && nomeEmpInput.tagName === 'INPUT') {
-                nomeEmpDiv.removeChild(nomeEmpInput);
-              }
-              // Cria select se não existir
-              if (!selectExistente) {
+                const novoSelect = document.createElement('select');
+                novoSelect.id = selectId;
+                novoSelect.name = 'nomeEmpreendimento';
+                novoSelect.required = true;
+                novoSelect.style.marginBottom = '12px';
+                empreendimentos.forEach(emp => {
+                  const opt = document.createElement('option');
+                  opt.value = emp;
+                  opt.textContent = emp;
+                  novoSelect.appendChild(opt);
+                });
+                nomeEmpDiv.replaceChild(novoSelect, nomeEmpInput);
+                nomeEmpInput = null;
+              } else if (!selectExistente) {
+                // Cria select se não existir input nem select
                 const select = document.createElement('select');
                 select.id = selectId;
                 select.name = 'nomeEmpreendimento';
@@ -324,7 +365,7 @@
                   opt.textContent = emp;
                   select.appendChild(opt);
                 });
-                nomeEmpDiv.insertBefore(select, nomeEmpDiv.querySelector('label + *'));
+                nomeEmpDiv.appendChild(select);
               } else {
                 // Atualiza opções se já existir
                 selectExistente.innerHTML = '';
@@ -338,7 +379,7 @@
             } else {
               // Se só tem um, garantir que é input e preencher
               if (selectExistente) {
-                nomeEmpDiv.removeChild(selectExistente);
+                nomeEmpDiv.replaceChild(document.createElement('input'), selectExistente);
               }
               if (!nomeEmpInput) {
                 nomeEmpInput = document.createElement('input');
@@ -350,11 +391,14 @@
               nomeEmpInput.value = empreendimentos[0] || '';
             }
           }
+          hideLoading();
         } else {
           notification.innerText = 'Documento ou senha inválidos!';
+          hideLoading();
         }
       } catch (err) {
         notification.innerText = 'Erro ao conectar com o servidor.';
+        hideLoading();
       }
     });
     // Recuperação de senha do síndico
@@ -379,6 +423,7 @@
     document.getElementById('btnBuscarEmailRecSindico').addEventListener('click', async function() {
       const doc = document.getElementById('recDocumentoSindico').value.trim();
       if (!doc) return alert('Digite o CNPJ ou CPF!');
+      showLoading();
       try {
         const resp = await fetch('https://chegar-primeiro.onrender.com/api/recuperar-email-sindico', {
           method: 'POST',
@@ -395,13 +440,16 @@
         } else {
           alert('Documento não encontrado!');
         }
+        hideLoading();
       } catch (err) {
         alert('Erro ao conectar com o servidor.');
+        hideLoading();
       }
     });
     // Enviar código
     document.getElementById('btnEnviarCodigoRecSindico').addEventListener('click', async function() {
       const doc = window._recuperarSenhaSindico.documento;
+      showLoading();
       try {
         const resp = await fetch('https://chegar-primeiro.onrender.com/api/enviar-codigo-recuperacao-sindico', {
           method: 'POST',
@@ -415,8 +463,10 @@
         } else {
           alert('Erro ao enviar código.');
         }
+        hideLoading();
       } catch (err) {
         alert('Erro ao conectar com o servidor.');
+        hideLoading();
       }
     });
     // Validar código
@@ -436,6 +486,7 @@
       const senha2 = document.getElementById('recNovaSenha2Sindico').value;
       if (!senha1 || senha1.length < 6) return alert('A senha deve ter pelo menos 6 caracteres.');
       if (senha1 !== senha2) return alert('As senhas não coincidem!');
+      showLoading();
       try {
         const resp = await fetch('https://chegar-primeiro.onrender.com/api/trocar-senha-sindico', {
           method: 'POST',
@@ -449,32 +500,37 @@
         } else {
           alert('Erro ao trocar senha: ' + (result.error || 'Erro desconhecido'));
         }
+        hideLoading();
       } catch (err) {
         alert('Erro ao conectar com o servidor.');
+        hideLoading();
       }
     });
     // Cadastro de empreendimento do síndico
     document.getElementById('formEmpreendimento').addEventListener('submit', async function(e) {
       e.preventDefault();
+      showLoading();
       const notificacao = document.getElementById('notificacaoEmpreendimento');
       notificacao.style.display = 'block';
       notificacao.innerText = 'Enviando...';
       const dados = {
-        empresaResponsavel: document.getElementById('empresaResponsavel').value,
-        cnpjEmpresa: document.getElementById('cnpjEmpresa').value,
-        emailResponsavelEmpresa: document.getElementById('emailResponsavelEmpresa').value,
-        telResponsavelEmpresa: document.getElementById('telResponsavelEmpresa').value,
-        nomeEmpreendimento: document.getElementById('nomeEmpreendimento').value,
-        enderecoEmpreendimento: document.getElementById('enderecoEmpreendimento').value,
-        qtdTorres: document.getElementById('qtdTorres').value,
-        qtdAptosAndar: document.getElementById('qtdAptosAndar').value,
-        qtdAptosTotal: document.getElementById('qtdAptosTotal').value,
-        nomeSindico: document.getElementById('nomeSindico').value,
-        emailSindico: document.getElementById('emailSindico').value,
-        telSindico: document.getElementById('telSindico').value,
-        dataEntrega: document.getElementById('dataEntrega').value,
-        existeRedeOperadora: document.getElementById('existeRedeOperadora').value,
-        qualOperadora: document.getElementById('qualOperadora').value
+        empresa_responsavel: document.getElementById('empresaResponsavel').value,
+        cnpj_empresa: document.getElementById('cnpjEmpresa').value,
+        email_responsavel_empresa: document.getElementById('emailResponsavelEmpresa').value,
+        telefone_responsavel_empresa: document.getElementById('telResponsavelEmpresa').value,
+        nome_empreendimento: document.getElementById('nomeEmpreendimentoSelect')
+          ? document.getElementById('nomeEmpreendimentoSelect').value
+          : (document.getElementById('nomeEmpreendimento') ? document.getElementById('nomeEmpreendimento').value : ''),
+        endereco_empreendimento: document.getElementById('enderecoEmpreendimento').value,
+        qtd_torres: document.getElementById('qtdTorres').value,
+        qtd_aptos_por_andar: document.getElementById('qtdAptosAndar').value,
+        qtd_aptos_total: document.getElementById('qtdAptosTotal').value,
+        nome_sindico: document.getElementById('nomeSindico').value,
+        email_sindico: document.getElementById('emailSindico').value,
+        telefone_sindico: document.getElementById('telSindico').value,
+        data_entrega: document.getElementById('dataEntrega').value,
+        existe_rede_operadora: document.getElementById('existeRedeOperadora').value,
+        qual_operadora: document.getElementById('qualOperadora').value
       };
       try {
         const resp = await fetch('https://chegar-primeiro.onrender.com/api/empreendimento', {
@@ -486,11 +542,14 @@
         if (result.success) {
           notificacao.innerText = 'Empreendimento cadastrado com sucesso!';
           document.getElementById('formEmpreendimento').reset();
+          hideLoading();
         } else {
           notificacao.innerText = 'Erro ao cadastrar: ' + (result.error || 'Erro desconhecido');
+          hideLoading();
         }
       } catch (err) {
         notificacao.innerText = 'Erro ao conectar com o servidor.';
+        hideLoading();
       }
       setTimeout(() => { notificacao.style.display = 'none'; }, 4000);
     });

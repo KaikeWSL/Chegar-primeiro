@@ -1,0 +1,924 @@
+/* === MELHORIAS VISUAIS PARA O MENU DE LOGIN === */
+
+/* Garantir que o body permita scroll */
+body.login-ativo,
+body.inicio-ativo {
+  overflow: auto;
+  min-height: 100vh;
+  display: block !important;
+  justify-content: initial !important;
+  align-items: initial !important;
+}
+
+body.login-ativo .container,
+body.inicio-ativo .container {
+  height: auto !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  padding: 20px !important;
+  overflow-y: auto !important;
+}
+
+/* Tela inicial com animações suaves */
+#telaInicial {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 32px 24px;
+  margin: 20px 0;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: slideInUp 0.8s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+#telaInicial::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(45deg);
+  animation: shimmer 3s infinite;
+}
+
+#telaInicial h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+#telaInicial p {
+  position: relative;
+  z-index: 1;
+}
+
+/* Botões da tela inicial melhorados */
+#telaInicial .submit-btn {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  color: #d31a20;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 16px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  min-width: 160px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+#telaInicial .submit-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+#telaInicial .submit-btn:hover::before {
+  left: 100%;
+}
+
+#telaInicial .submit-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+#telaInicial .submit-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Container do formulário de login melhorado */
+#formLogin {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 32px 28px;
+  margin: 20px 0;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
+  animation: slideInUp 0.8s ease-out;
+  max-width: 420px;
+  width: 100%;
+  overflow: hidden;
+}
+
+#formLogin::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  transform: rotate(45deg);
+  animation: shimmer 4s infinite;
+  z-index: 0;
+}
+
+#formLogin h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 28px;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+#formLogin h2::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #fff, transparent);
+  border-radius: 2px;
+}
+
+/* === COMPONENTES AVANÇADOS DO LOGIN === */
+
+/* Campo com sugestões */
+.input-with-suggestions {
+  position: relative;
+}
+
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  display: none;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  transition: background 0.2s ease;
+}
+
+.suggestion-item:hover {
+  background: rgba(211, 26, 32, 0.1);
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+/* Checkbox customizado */
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+}
+
+.custom-checkbox {
+  display: none;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  user-select: none;
+}
+
+.checkbox-icon {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  font-size: 12px;
+  color: transparent;
+}
+
+.custom-checkbox:checked + .checkbox-label .checkbox-icon {
+  background: #fff;
+  color: #d31a20;
+  border-color: #fff;
+}
+
+/* Seção biométrica */
+.biometric-section {
+  margin: 16px 0;
+  text-align: center;
+}
+
+.biometric-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  width: 100%;
+}
+
+.biometric-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+/* Seção de dois fatores */
+.two-factor-section {
+  margin: 16px 0;
+}
+
+.verification-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.verification-input-group input {
+  flex: 1;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.btn-resend {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-resend:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-resend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Opções de login */
+.login-options {
+  margin: 16px 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* === DEBUG: GARANTIR VISIBILIDADE DOS BOTÕES === */
+body.login-ativo .login-actions,
+body.login-ativo .login-links,
+#formLogin .login-actions,
+#formLogin .login-links {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+body.login-ativo .submit-btn,
+body.login-ativo .link-btn,
+#formLogin .submit-btn,
+#formLogin .link-btn {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-height: 44px !important;
+  width: 100% !important;
+}
+
+/* === FIM DEBUG === */
+
+/* Ações do login */
+.login-actions {
+  display: flex !important;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0 16px 0;
+  position: relative;
+  z-index: 1;
+  visibility: visible !important;
+}
+
+/* Garantir que todos os botões sejam visíveis */
+.login-actions .submit-btn {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Links do login também devem ser visíveis */
+.login-links {
+  display: flex !important;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0 16px 0;
+  position: relative;
+  visibility: visible !important;
+}
+
+.login-links .link-btn {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Botões primários e secundários */
+.primary-btn {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  color: #d31a20;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.secondary-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Spinner de carregamento */
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(211, 26, 32, 0.3);
+  border-top: 2px solid #d31a20;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Links do login */
+.login-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 20px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 0;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.link-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Informações de segurança */
+.security-info {
+  margin-top: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.security-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(40, 167, 69, 0.2);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.security-icon {
+  font-size: 20px;
+}
+
+.security-text strong {
+  display: block;
+  color: #fff;
+  font-size: 14px;
+}
+
+.security-text small {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+}
+
+.login-attempts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 193, 7, 0.2);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.warning-icon {
+  font-size: 18px;
+}
+
+/* Melhorias nos campos do login */
+#formLogin .field-container {
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+#formLogin .field-container label {
+  color: #fff;
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 8px;
+  display: block;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+#formLogin input[type="text"],
+#formLogin input[type="password"] {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 15px;
+  color: #333;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  position: relative;
+}
+
+#formLogin input[type="text"]:focus,
+#formLogin input[type="password"]:focus {
+  outline: none;
+  border-color: #fff;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+#formLogin input[type="text"]::placeholder,
+#formLogin input[type="password"]::placeholder {
+  color: #666;
+  opacity: 0.8;
+}
+
+/* Dicas dos campos do login */
+#formLogin small {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+  font-style: italic;
+}
+
+/* Container de senha com toggle */
+.password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.btn-toggle-password {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #666;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+  z-index: 2;
+}
+
+.btn-toggle-password:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Indicador de força da senha */
+.password-strength-indicator {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.password-strength-indicator::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: #dc3545;
+  transition: all 0.3s ease;
+}
+
+.password-strength-indicator.weak::before {
+  width: 33%;
+  background: #dc3545;
+}
+
+.password-strength-indicator.medium::before {
+  width: 66%;
+  background: #ffc107;
+}
+
+.password-strength-indicator.strong::before {
+  width: 100%;
+  background: #28a745;
+}
+
+/* Botões do formulário de login */
+#formLogin .submit-btn {
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  width: 100%;
+  margin-bottom: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Botão ENTRAR - GRANDE e destacado */
+#formLogin .submit-btn.primary-btn {
+  padding: 18px 32px;
+  font-size: 18px;
+  font-weight: 700;
+  background: #d31a20;
+  color: #fff;
+  border: none;
+  margin-bottom: 20px;
+  min-height: 56px;
+}
+
+#formLogin .submit-btn.primary-btn:hover {
+  background: #b8161c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(211, 26, 32, 0.4);
+}
+
+/* Botão VOLTAR - menor e discreto */
+#formLogin .submit-btn.secondary-btn {
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  min-height: 44px;
+}
+
+#formLogin .submit-btn.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.submit-btn .btn-text {
+  transition: opacity 0.3s ease;
+}
+
+.submit-btn.loading .btn-text {
+  opacity: 0;
+}
+
+.submit-btn.loading .loading-spinner {
+  display: block;
+}
+
+#formLogin .submit-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+#formLogin .submit-btn:hover::before {
+  left: 100%;
+}
+
+#formLogin .submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+#formLogin .submit-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Animações */
+@keyframes slideInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Efeito de loading nos botões */
+.submit-btn.loading {
+  position: relative;
+  color: transparent !important;
+}
+
+.submit-btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(211, 26, 32, 0.3);
+  border-top: 2px solid #d31a20;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Efeitos de micro-interação */
+#formLogin input[type="text"]:valid,
+#formLogin input[type="password"]:valid {
+  border-color: rgba(40, 167, 69, 0.8);
+}
+
+#formLogin input[type="text"]:invalid:not(:placeholder-shown),
+#formLogin input[type="password"]:invalid:not(:placeholder-shown) {
+  border-color: rgba(220, 53, 69, 0.8);
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 480px) {
+  #telaInicial,
+  #formLogin {
+    margin: 10px 0;
+    padding: 24px 20px;
+  }
+  
+  #telaInicial .submit-btn {
+    padding: 14px 20px;
+    font-size: 14px;
+    min-width: 140px;
+    margin: 4px;
+  }
+  
+  #formLogin .submit-btn {
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+  
+  #telaInicial div[style*="display:flex"] {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Container padrão para cadastro */
+body.cadastro-ativo .container {
+  display: block;
+  justify-content: initial;
+  align-items: initial;
+  min-height: initial;
+  position: relative;
+  padding-top: 20px;
+}
+
+/* Logo com animação suave */
+.logo {
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+body.login-ativo .logo,
+body.inicio-ativo .logo {
+  animation: pulse 3s infinite;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+  animation: none;
+}
+
+/* Título principal com gradiente */
+body.login-ativo .container > h2,
+body.inicio-ativo .container > h2 {
+  background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 28px;
+  font-weight: 700;
+  text-shadow: none;
+  margin-bottom: 24px;
+  animation: fadeIn 1s ease-out 0.5s both;
+}
+
+/* Garantir que o conteúdo fique acima das partículas */
+#telaInicial > *,
+#formLogin > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* === CSS DE EMERGÊNCIA PARA BOTÕES === */
+.login-actions,
+.login-links {
+  display: flex !important;
+  flex-direction: column !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 999 !important;
+  margin: 16px 0 !important;
+}
+
+.login-actions {
+  gap: 12px !important;
+}
+
+.login-links {
+  gap: 6px !important;
+}
+
+/* Botão ENTRAR - Grande e destacado */
+.submit-btn.primary-btn {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  min-height: 56px !important;
+  padding: 18px 32px !important;
+  background: #d31a20 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+/* Botão VOLTAR - Menor e discreto */
+.submit-btn.secondary-btn {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  min-height: 44px !important;
+  padding: 12px 20px !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+/* Links menores e discretos */
+.link-btn {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  padding: 6px 0 !important;
+  background: none !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  border: none !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.submit-btn.primary-btn:hover {
+  background: #b8161c !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(211, 26, 32, 0.4) !important;
+}
+
+.submit-btn.secondary-btn:hover,
+.link-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}

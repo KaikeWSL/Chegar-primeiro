@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Chegar Primeiro - Sistema seguro para clientes Claro solicitarem serviços e manutenções">
+  <meta name="keywords" content="Claro, serviços, manutenção, clientes, internet, telefone">
+  <meta name="author" content="Claro">
+  <meta name="robots" content="noindex, nofollow">
+  
+  <!-- Segurança -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://chegar-primeiro.onrender.com https://viacep.com.br https://brasilapi.com.br; font-src 'self' data:;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  
+  <!-- PWA Support -->
+  <meta name="theme-color" content="#d31a20">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <title>Chegar Primeiro - Portal Claro</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="login-improvements.css">
+  <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📱</text></svg>">
+</head>
+<body class="inicio-ativo">
+  <div class="container">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/LogoClaro2017.png" class="logo" alt="Logo Claro">
+    <h2 style="text-align:center; margin-bottom: 18px;">Chegar Primeiro</h2>
+    
+    <div id="telaInicial">
+      <h2>🏠 Bem-vindo ao Portal Claro</h2>
+      <p style="color: rgba(255, 255, 255, 0.9); font-size: 16px; margin-bottom: 24px; line-height: 1.5;">
+        Escolha uma das opções abaixo para continuar
+      </p>
+      
+      <div style="display:flex; gap:20px; justify-content:center; margin:24px 0; flex-wrap: wrap;">
+        <button onclick="window.location.href='login.html'" class="submit-btn">
+          ✅ Já sou cliente - Fazer Login
+        </button>
+        <button onclick="window.location.href='cadastro.html'" class="submit-btn">
+          ➕ Não sou cliente - Cadastrar-se
+        </button>
+      </div>
+      
+      <!-- Informações adicionais -->
+      <div style="margin-top: 32px; text-align: center;">
+        <div style="background: rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px; margin: 16px 0;">
+          <h3 style="color: #fff; font-size: 18px; margin-bottom: 12px;">🔒 Sistema Seguro</h3>
+          <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 1.4;">
+            Acesse seus serviços Claro com total segurança. Solicitações de manutenção, troca de planos e acompanhamento de protocolos.
+          </p>
+        </div>
+        
+        <div style="margin-top: 20px;">
+          <small style="color: rgba(255, 255, 255, 0.7); font-size: 12px;">
+            © 2025 Claro SA. Todos os direitos reservados.
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <style>
+    /* Garantir que a página inicial tenha o estilo correto */
+    body.inicio-ativo {
+      overflow: auto;
+      min-height: 100vh;
+      display: block !important;
+      justify-content: initial !important;
+      align-items: initial !important;
+    }
+
+    body.inicio-ativo .container {
+      height: auto !important;
+      min-height: 100vh !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      padding: 20px !important;
+    }
+  </style>
+  
+  <script src="navigation.js"></script>
+</body>
+</html>

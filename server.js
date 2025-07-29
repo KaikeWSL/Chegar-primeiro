@@ -239,24 +239,62 @@ async function salvarSolicitacao(dados) {
   if (dados.tipo === 'novo_cliente') {
     console.log(`[${new Date().toISOString()}] [INFO] Inserindo cliente na tabela clientes`);
     try {
-      await executarQuery(
+      const clienteResult = await executarQuery(
         `INSERT INTO clientes
-          (nome_cliente, cpf, cep, email, endereco, apartamento, bloco, nome_empreendimento, servico, senha)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+          (nome, cpf, cep, email, endereco, numero, complemento, bairro, cidade, estado, apartamento, bloco, empreendimento, telefone, celular, senha_hash, fingerprint)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING id`,
         [
           dados.nome_cliente || null,
           dados.cpf || null,
           dados.cep || null,
           dados.email || null,
           dados.endereco || null,
+          dados.numero || null,
+          dados.complemento || null,
+          dados.bairro || null,
+          dados.cidade || null,
+          dados.estado || null,
           dados.apartamento || null,
           dados.bloco || null,
           dados.nome_empreendimento || null,
-          dados.novo_servico || null,
-          senhaHash
+          dados.telefone || null,
+          dados.celular || null,
+          senhaHash,
+          dados.fingerprint || null
         ]
       );
-      console.log(`[${new Date().toISOString()}] [INFO] Cliente inserido na tabela clientes com sucesso`);
+      const clienteId = clienteResult.rows[0].id;
+      console.log(`[${new Date().toISOString()}] [INFO] Cliente inserido na tabela clientes com sucesso, ID: ${clienteId}`);
+      
+      // Associar cliente ao serviço se foi fornecido
+      if (dados.servico || dados.novo_servico) {
+        const servicoNome = dados.servico || dados.novo_servico;
+        console.log(`[${new Date().toISOString()}] [INFO] Associando cliente ao serviço: ${servicoNome}`);
+        
+        try {
+          // Buscar o ID do serviço pelo nome
+          const servicoResult = await executarQuery(
+            `SELECT id FROM servicos WHERE nome = $1 LIMIT 1`,
+            [servicoNome]
+          );
+          
+          if (servicoResult.rows.length > 0) {
+            const servicoId = servicoResult.rows[0].id;
+            
+            // Inserir na tabela cliente_servicos
+            await executarQuery(
+              `INSERT INTO cliente_servicos (cliente_id, servico_id) VALUES ($1, $2)`,
+              [clienteId, servicoId]
+            );
+            console.log(`[${new Date().toISOString()}] [INFO] Associação cliente-serviço criada com sucesso`);
+          } else {
+            console.warn(`[${new Date().toISOString()}] [WARN] Serviço não encontrado: ${servicoNome}`);
+          }
+        } catch (err) {
+          console.error(`[${new Date().toISOString()}] [ERROR] Erro ao associar cliente ao serviço:`, err);
+        }
+      }
+      
     } catch (err) {
       console.error(`[${new Date().toISOString()}] [ERROR] Erro ao inserir cliente:`, err);
       throw err;

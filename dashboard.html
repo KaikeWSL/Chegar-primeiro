@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dashboard - Chegar Primeiro - Sistema seguro para clientes Claro solicitarem serviços e manutenções">
+  <meta name="keywords" content="Claro, serviços, manutenção, clientes, internet, telefone, dashboard">
+  <meta name="author" content="Claro">
+  <meta name="robots" content="noindex, nofollow">
+  
+  <!-- Segurança -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://chegar-primeiro.onrender.com https://viacep.com.br https://brasilapi.com.br; font-src 'self' data:;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  
+  <!-- PWA Support -->
+  <meta name="theme-color" content="#d31a20">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <title>Dashboard - Chegar Primeiro</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📱</text></svg>">
+</head>
+<body>
+  <div class="container">
+    <!-- Header com logout -->
+    <div class="dashboard-header">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/LogoClaro2017.png" class="logo" alt="Logo Claro">
+      <div class="user-info">
+        <span id="welcomeUser">Bem-vindo, Cliente!</span>
+        <button onclick="logout()" class="btn-logout">🚪 Sair</button>
+      </div>
+    </div>
+    
+    <h2 style="text-align:center; margin-bottom: 18px;">Área do Cliente</h2>
+    
+    <div id="areaAutenticada">
+      <div class="tabs">
+        <div class="tab active" onclick="showTab(0)">🔧 Manutenção</div>
+        <div class="tab" onclick="showTab(1)">📡 Troca de Serviço</div>
+        <div class="tab" onclick="showTab(2)">📋 Acompanhar Solicitação</div>
+      </div>
+      
+      <!-- Formulário de Manutenção -->
+      <form id="formVistoria" class="active">
+        <h3>🔧 Solicitar Manutenção</h3>
+        
+        <div class="field-container">
+          <label>Nome</label>
+          <input type="text" id="vistoriaNomeCliente" readonly style="background: #f8f9fa;">
+        </div>
+        
+        <div class="field-container">
+          <label>CPF</label>
+          <input type="text" id="vistoriaCpf" readonly style="background: #f8f9fa;">
+        </div>
+        
+        <div class="field-container">
+          <label>CEP</label>
+          <input type="text" id="vistoriaCep" maxlength="9" autocomplete="postal-code" placeholder="00000-000">
+        </div>
+        
+        <div class="field-container">
+          <label>Endereço</label>
+          <input type="text" id="vistoriaEndereco" autocomplete="street-address">
+        </div>
+        
+        <div class="row">
+          <div class="field-container">
+            <label>Apartamento</label>
+            <input type="text" id="vistoriaApartamento" autocomplete="address-line2">
+          </div>
+          <div class="field-container">
+            <label>Bloco</label>
+            <input type="text" id="vistoriaBloco" autocomplete="address-line3">
+          </div>
+        </div>
+        
+        <div class="field-container">
+          <label>Serviço atual</label>
+          <input type="text" id="vistoriaServicoAtual" readonly style="background: #f8f9fa;">
+        </div>
+        
+        <div class="field-container">
+          <label>Telefone de contato</label>
+          <input type="text" id="vistoriaTelefone" autocomplete="tel" placeholder="(11) 99999-9999">
+          <small style="color: #666; font-size: 11px;">Formato: (11) 99999-9999</small>
+        </div>
+        
+        <div class="field-container">
+          <label>Descrição do problema</label>
+          <textarea id="vistoriaDescricao" required rows="3" style="resize: vertical; min-height: 60px;" placeholder="Descreva detalhadamente o problema que está enfrentando..."></textarea>
+          <small style="color: #666; font-size: 11px;">Seja específico para um atendimento mais rápido</small>
+        </div>
+        
+        <div class="field-container">
+          <label>Melhor horário de contato</label>
+          <input type="time" id="vistoriaHorario" min="08:00" max="18:00">
+          <small style="color: #666; font-size: 11px;">Horário comercial: 08:00 às 18:00</small>
+        </div>
+        
+        <button class="submit-btn" type="submit">📤 Enviar Solicitação</button>
+      </form>
+      
+      <!-- Formulário de Troca de Serviço -->
+      <form id="formTrocaServico">
+        <h3>📡 Troca de Serviço</h3>
+        
+        <div class="field-container">
+          <label>Nome</label>
+          <input type="text" id="trocaNomeCliente" readonly style="background: #f8f9fa;">
+        </div>
+        
+        <div class="field-container">
+          <label>CPF</label>
+          <input type="text" id="trocaCpf" readonly style="background: #f8f9fa;">
+        </div>
+        
+        <div class="field-container">
+          <label>Endereço</label>
+          <input type="text" id="trocaEndereco" readonly style="background: #f8f9fa;">
+        </div>
+        
+        <div class="row">
+          <div class="field-container">
+            <label>Apartamento</label>
+            <input type="text" id="trocaApartamento" readonly style="background: #f8f9fa;">
+          </div>
+          <div class="field-container">
+            <label>Bloco</label>
+            <input type="text" id="trocaBloco" readonly style="background: #f8f9fa;">
+          </div>
+        </div>
+        
+        <div class="field-container">
+          <label>Serviço atual</label>
+          <input type="text" id="trocaServicoAtual" readonly style="background: #f8f9fa;">
+        </div>
+        
+        <div class="field-container">
+          <label>Novo serviço</label>
+          <div class="servico-contratado-row" id="trocaServicoContainer">
+            <button type="button" class="select-service-btn" onclick="abrirModalServicos('troca')" id="btnSelecionarNovoServico">Selecionar novo serviço</button>
+          </div>
+          <small style="color: #666; font-size: 11px;">Escolha o plano que melhor atende suas necessidades</small>
+        </div>
+        
+        <button class="submit-btn" type="submit">🔄 Solicitar Troca</button>
+      </form>
+      
+      <!-- Acompanhar Solicitação -->
+      <div id="acompanharSolicitacao" style="display:none; margin-top:24px;">
+        <h3>📋 Acompanhar Solicitação</h3>
+        <label for="inputProtocolo">Digite o número do protocolo:</label>
+        <div style="display:flex;flex-direction:column;align-items:flex-start;max-width:350px;gap:10px;">
+          <input type="text" id="inputProtocolo" style="width:100%;" placeholder="Número do protocolo">
+          <button type="button" class="submit-btn" id="btnBuscarProtocolo" style="align-self:flex-end;">🔍 Buscar</button>
+        </div>
+        <div id="resultadoAcompanhamento" style="margin-top:18px;"></div>
+      </div>
+    </div>
+
+    <!-- Modal de seleção de serviços -->
+    <div class="modal-servicos" id="modalServicos">
+      <div class="modal-content">
+        <span class="close-modal" onclick="fecharModalServicos()">&times;</span>
+        <div class="servicos-grid">
+          <div class="servico-card" onclick="selecionarServico('Claro fibra 350 MEGA + globoplay', window.modalServicoContexto)">
+            <div class="servico-titulo">Claro<span style='color:#ff0000'> fibra</span></div>
+            <div class="servico-mega">350 MEGA</div>
+            <div class="servico-benef">globoplay + Wi-Fi Grátis + McAfee + E-books</div>
+            <div class="servico-preco">R$ 79,90/mês</div>
+            <button type="button" class="servico-btn">Assine</button>
+          </div>
+          <div class="servico-card" onclick="selecionarServico('Claro fibra 600 MEGA + globoplay + Claro pós 60GB', window.modalServicoContexto)">
+            <div class="servico-titulo">Claro<span style='color:#ff0000'> fibra</span></div>
+            <div class="servico-mega">600 MEGA</div>
+            <div class="servico-benef">globoplay + Wi-Fi Grátis + Claro pós 60GB</div>
+            <div class="servico-preco">R$ 159,90/mês</div>
+            <button type="button" class="servico-btn">Assine</button>
+          </div>
+          <div class="servico-card" onclick="selecionarServico('Claro controle 30GB + bônus', window.modalServicoContexto)">
+            <div class="servico-titulo">Claro<span style='color:#ff0000'> controle</span></div>
+            <div class="servico-mega">30GB</div>
+            <div class="servico-benef">15GB + 5GB redes sociais + WhatsApp ilimitado + 10GB bônus</div>
+            <div class="servico-preco">R$ 59,90/mês</div>
+            <button type="button" class="servico-btn">Contrate</button>
+          </div>
+          <div class="servico-card" onclick="selecionarServico('Claro pós 50GB', window.modalServicoContexto)">
+            <div class="servico-titulo">Claro<span style='color:#ff0000'> pós</span></div>
+            <div class="servico-mega">50GB</div>
+            <div class="servico-benef">25GB + 25GB + WhatsApp ilimitado</div>
+            <div class="servico-preco">R$ 119,90/mês</div>
+            <button type="button" class="servico-btn">Contrate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay de loading -->
+    <div id="loadingOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);z-index:10000;align-items:center;justify-content:center;">
+      <div style="background:#fff;padding:32px 40px;border-radius:12px;box-shadow:0 2px 16px #0002;display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <div class="spinner" style="border:6px solid #eee;border-top:6px solid #ff0000;border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite;"></div>
+        <span style="font-size:1.1em;color:#333;">Carregando...</span>
+      </div>
+    </div>
+
+    <!-- Notificação -->
+    <div class="notification" id="notification"></div>
+  </div>
+  
+  <style>
+    @keyframes spin { 
+      0% { transform: rotate(0deg);} 
+      100% { transform: rotate(360deg);} 
+    }
+    
+    /* Estilo do header do dashboard */
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      color: #fff;
+    }
+    
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-logout:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+  </style>
+  
+  <script src="navigation.js"></script>
+  <script src="script.js"></script>
+  <script>
+    // Inicializar dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verificar se o usuário está autenticado
+      checkAuth();
+      
+      // Carregar dados do usuário
+      loadUserData();
+      
+      // Inicializar funcionalidades específicas do dashboard
+      if (typeof initializeDashboard === 'function') {
+        initializeDashboard();
+      }
+    });
+
+    // Função para verificar autenticação
+    function checkAuth() {
+      // Se não estiver autenticado, redirecionar para login
+      const isAuthenticated = localStorage.getItem('userAuthenticated');
+      if (!isAuthenticated) {
+        window.location.href = 'index-principal.html';
+        return;
+      }
+    }
+
+    // Função para carregar dados do usuário
+    function loadUserData() {
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      if (userData.nome) {
+        document.getElementById('welcomeUser').textContent = `Bem-vindo, ${userData.nome}!`;
+        
+        // Preencher campos readonly
+        const fields = ['vistoriaNomeCliente', 'trocaNomeCliente'];
+        fields.forEach(fieldId => {
+          const field = document.getElementById(fieldId);
+          if (field) field.value = userData.nome;
+        });
+        
+        const cpfFields = ['vistoriaCpf', 'trocaCpf'];
+        cpfFields.forEach(fieldId => {
+          const field = document.getElementById(fieldId);
+          if (field) field.value = userData.cpf || '';
+        });
+      }
+    }
+
+    // Função de logout
+    function logout() {
+      localStorage.removeItem('userAuthenticated');
+      localStorage.removeItem('userData');
+      window.location.href = 'index-principal.html';
+    }
+
+    // Função para trocar abas
+    function showTab(index) {
+      // Remover classe active de todas as abas
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('#areaAutenticada > form, #areaAutenticada > div').forEach(form => {
+        form.style.display = 'none';
+        form.classList.remove('active');
+      });
+      
+      // Ativar aba selecionada
+      document.querySelectorAll('.tab')[index].classList.add('active');
+      
+      if (index === 0) {
+        document.getElementById('formVistoria').style.display = 'flex';
+        document.getElementById('formVistoria').classList.add('active');
+      } else if (index === 1) {
+        document.getElementById('formTrocaServico').style.display = 'flex';
+        document.getElementById('formTrocaServico').classList.add('active');
+      } else if (index === 2) {
+        document.getElementById('acompanharSolicitacao').style.display = 'block';
+      }
+    }
+
+    // Função para abrir modal de serviços
+    function abrirModalServicos(contexto) {
+      window.modalServicoContexto = contexto;
+      document.getElementById('modalServicos').style.display = 'flex';
+    }
+
+    // Função para fechar modal de serviços
+    function fecharModalServicos() {
+      document.getElementById('modalServicos').style.display = 'none';
+    }
+
+    // Função para selecionar serviço
+    function selecionarServico(nomeServico, contexto) {
+      const container = document.getElementById(contexto + 'ServicoContainer');
+      if (container) {
+        container.innerHTML = `
+          <div class="servico-selecionado">
+            <span class="servico-nome">${nomeServico}</span>
+            <button type="button" onclick="abrirModalServicos('${contexto}')" class="btn-alterar-servico">Alterar</button>
+          </div>
+        `;
+      }
+      fecharModalServicos();
+    }
+  </script>
+</body>
+</html>

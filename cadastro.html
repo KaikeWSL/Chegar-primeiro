@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Cadastro - Chegar Primeiro Claro">
+  <meta name="keywords" content="Claro, cadastro, registro, novo cliente">
+  <meta name="author" content="Claro">
+  <meta name="robots" content="noindex, nofollow">
+  
+  <!-- Segurança -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://chegar-primeiro.onrender.com https://viacep.com.br https://brasilapi.com.br; font-src 'self' data:;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  
+  <!-- PWA Support -->
+  <meta name="theme-color" content="#d31a20">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <title>Cadastro - Chegar Primeiro</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="login-improvements.css">
+  <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📱</text></svg>">
+</head>
+<body class="cadastro-ativo">
+  <div class="container">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/LogoClaro2017.png" class="logo" alt="Logo Claro">
+    <h2 style="text-align:center; margin-bottom: 18px;">Chegar Primeiro</h2>
+    
+    <form id="formCadastro" style="display:flex; flex-direction:column;">
+      <div class="form-header">
+        <h2>📝 Cadastro de Novo Cliente</h2>
+        <p class="form-subtitle">Preencha seus dados para criar sua conta</p>
+      </div>
+
+      <!-- Seção Dados Pessoais -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">👤</div>
+          <h3>Dados Pessoais</h3>
+        </div>
+        
+        <div class="form-row">
+          <div class="field-group full-width">
+            <label>Nome Completo <span class="required">*</span></label>
+            <input type="text" id="cadNome" required minlength="2" autocomplete="name" placeholder="Digite seu nome completo">
+            <div class="field-hint">Mínimo 2 caracteres</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field-group half-width">
+            <label>CPF/CNPJ <span class="required">*</span></label>
+            <input type="text" id="cadCpf" required maxlength="18" autocomplete="off" placeholder="000.000.000-00">
+          </div>
+          <div class="field-group half-width">
+            <label>Email <span class="required">*</span></label>
+            <div class="input-with-icon">
+              <input type="email" id="cadEmail" required autocomplete="email" placeholder="seu@email.com">
+              <span id="iconeEmailVerificado" class="input-icon verified-icon" style="display:none;">✔</span>
+            </div>
+            <button type="button" id="btnVerificarEmail" class="btn-secondary" style="display:none; margin-top:8px;">
+              Verificar e-mail
+            </button>
+            <div id="areaCodigoEmail" class="verification-area" style="display:none;">
+              <label class="verification-label">Digite o código recebido no e-mail:</label>
+              <div class="verification-input-group">
+                <input type="text" id="inputCodigoEmail" maxlength="6" class="verification-code" placeholder="000000">
+                <button type="button" id="btnValidarCodigoEmail" class="btn-verify">Validar</button>
+              </div>
+              <div id="statusCodigoEmail" class="verification-status"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção Contato -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">📞</div>
+          <h3>Contato</h3>
+        </div>
+        
+        <div class="form-row">
+          <div class="field-group half-width">
+            <label>Telefone</label>
+            <input type="text" id="cadTelefone" autocomplete="tel" placeholder="(11) 99999-9999">
+            <div class="field-hint">Formato: (11) 99999-9999</div>
+          </div>
+          <div class="field-group half-width">
+            <label>Celular</label>
+            <input type="text" id="cadCelular" autocomplete="tel" placeholder="(11) 91234-5678">
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção Endereço -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">📍</div>
+          <h3>Endereço</h3>
+        </div>
+        
+        <div class="form-row">
+          <div class="field-group half-width">
+            <label>CEP <span class="required">*</span></label>
+            <input type="text" id="cadCep" required maxlength="9" autocomplete="postal-code" placeholder="00000-000">
+            <div class="field-hint">Preencheremos o endereço automaticamente</div>
+          </div>
+          <div class="field-group half-width">
+            <label>Logradouro <span class="required">*</span></label>
+            <input type="text" id="cadEndereco" required autocomplete="street-address" readonly class="readonly-field">
+            <div class="field-hint">Preenchido automaticamente pelo CEP</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field-group third-width">
+            <label>Número <span class="required">*</span></label>
+            <input type="text" id="cadNumero" required placeholder="123">
+          </div>
+          <div class="field-group third-width">
+            <label>Complemento</label>
+            <input type="text" id="cadComplemento" placeholder="Apto, Sala, etc.">
+          </div>
+          <div class="field-group third-width">
+            <label>Bairro</label>
+            <input type="text" id="cadBairro" readonly class="readonly-field">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field-group half-width">
+            <label>Cidade</label>
+            <input type="text" id="cadCidade" readonly class="readonly-field">
+          </div>
+          <div class="field-group quarter-width">
+            <label>Estado</label>
+            <select id="cadEstado" disabled class="readonly-field">
+              <option value="SP">SP</option>
+            </select>
+          </div>
+          <div class="field-group quarter-width">
+            <label>Apartamento</label>
+            <input type="text" id="cadApartamento" required placeholder="101">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field-group half-width">
+            <label>Bloco</label>
+            <input type="text" id="cadBloco" required placeholder="A">
+          </div>
+          <div class="field-group half-width">
+            <label>Nome do empreendimento</label>
+            <input type="text" id="cadEmpreendimento" placeholder="Nome do condomínio/residencial">
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção Serviço -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">📡</div>
+          <h3>Serviço Contratado</h3>
+        </div>
+        
+        <div class="form-row">
+          <div class="field-group full-width">
+            <label>Selecione seu plano</label>
+            <div class="servico-container" id="cadServicoContainer">
+              <button type="button" class="btn-select-service" onclick="abrirModalServicos('cadastro')" id="btnSelecionarServico">
+                <span class="btn-icon">+</span>
+                Selecionar serviço
+              </button>
+            </div>
+            <div class="field-hint">Escolha o plano que melhor atende suas necessidades</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção Dados de Acesso -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">🔒</div>
+          <h3>Dados de Acesso</h3>
+        </div>
+        
+        <div class="form-row">
+          <div class="field-group half-width">
+            <label>Senha <span class="required">*</span></label>
+            <div class="password-input-container">
+              <input type="password" id="cadSenha" required autocomplete="new-password" minlength="8" placeholder="Mínimo 8 caracteres">
+              <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('cadSenha')">👁</button>
+            </div>
+            <div class="password-requirements">
+              <div class="requirement-item" id="req-length">
+                <span class="requirement-icon">○</span>
+                <span>Mínimo 8 caracteres</span>
+              </div>
+              <div class="requirement-item" id="req-upper">
+                <span class="requirement-icon">○</span>
+                <span>Uma letra maiúscula</span>
+              </div>
+              <div class="requirement-item" id="req-lower">
+                <span class="requirement-icon">○</span>
+                <span>Uma letra minúscula</span>
+              </div>
+              <div class="requirement-item" id="req-number">
+                <span class="requirement-icon">○</span>
+                <span>Um número</span>
+              </div>
+              <div class="requirement-item" id="req-special">
+                <span class="requirement-icon">○</span>
+                <span>Um caractere especial</span>
+              </div>
+            </div>
+          </div>
+          <div class="field-group half-width">
+            <label>Confirmar Senha <span class="required">*</span></label>
+            <div class="password-input-container">
+              <input type="password" id="cadSenha2" required autocomplete="new-password" placeholder="Repita a senha">
+              <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('cadSenha2')">👁</button>
+            </div>
+            <div id="password-match-indicator" class="password-match-indicator"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">
+          <span class="btn-icon">✓</span>
+          Realizar Cadastro
+        </button>
+        <button type="button" onclick="window.location.href='index-principal.html'" class="btn-secondary">
+          <span class="btn-icon">←</span>
+          Voltar ao Início
+        </button>
+      </div>
+      
+      <!-- Link para login -->
+      <div style="text-align: center; margin-top: 16px;">
+        <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 8px;">Já possui cadastro?</p>
+        <button type="button" onclick="window.location.href='login.html'" class="link-btn" style="color: #00bcd4; text-decoration: underline;">
+          🔐 Fazer Login
+        </button>
+      </div>
+    </form>
+
+    <!-- Modal de seleção de serviços -->
+    <div class="modal-servicos" id="modalServicos">
+      <div class="modal-content">
+        <span class="close-modal" onclick="fecharModalServicos()">&times;</span>
+        <div class="servicos-grid">
+          <div class="servico-card" onclick="selecionarServico('Claro fibra 350 MEGA + globoplay', 'cadastro')">
+            <div class="servico-titulo">Claro<span style='color:#ff0000'> fibra</span></div>
+            <div class="servico-mega">350 MEGA</div>
+            <div class="servico-benef">globoplay + Wi-Fi Grátis + McAfee + E-books</div>
+            <div class="servico-preco">R$ 79,90/mês</div>
+            <button type="button" class="servico-btn">Assine</button>
+          </div>
+          <div class="servico-card" onclick="selecionarServico('Claro fibra 600 MEGA + globoplay + Claro pós 60GB', 'cadastro')">
+            <div class="servico-titulo">Claro<span style='color:#ff0000'> fibra</span></div>
+            <div class="servico-mega">600 MEGA</div>
+            <div class="servico-benef">globoplay + Wi-Fi Grátis + Claro pós 60GB</div>
+            <div class="servico-preco">R$ 159,90/mês</div>
+            <button type="button" class="servico-btn">Assine</button>
+          </div>
+          <div class="servico-card" onclick="selecionarServico('Claro controle 30GB + bônus', 'cadastro')">
+            <div class="servico-titulo">Claro<span style='color:#ff0000'> controle</span></div>
+            <div class="servico-mega">30GB</div>
+            <div class="servico-benef">15GB + 5GB redes sociais + WhatsApp ilimitado + 10GB bônus</div>
+            <div class="servico-preco">R$ 59,90/mês</div>
+            <button type="button" class="servico-btn">Contrate</button>
+          </div>
+          <div class="servico-card" onclick="selecionarServico('Claro pós 50GB', 'cadastro')">
+            <div class="servico-titulo">Claro<span style='color:#ff0000'> pós</span></div>
+            <div class="servico-mega">50GB</div>
+            <div class="servico-benef">25GB + 25GB + WhatsApp ilimitado</div>
+            <div class="servico-preco">R$ 119,90/mês</div>
+            <button type="button" class="servico-btn">Contrate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay de loading -->
+    <div id="loadingOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);z-index:10000;align-items:center;justify-content:center;">
+      <div style="background:#fff;padding:32px 40px;border-radius:12px;box-shadow:0 2px 16px #0002;display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <div class="spinner" style="border:6px solid #eee;border-top:6px solid #ff0000;border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite;"></div>
+        <span style="font-size:1.1em;color:#333;">Carregando...</span>
+      </div>
+    </div>
+
+    <!-- Notificação -->
+    <div class="notification" id="notification"></div>
+  </div>
+  
+  <style>
+    @keyframes spin { 
+      0% { transform: rotate(0deg);} 
+      100% { transform: rotate(360deg);} 
+    }
+    
+    /* Estilos para notificações */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      z-index: 10002;
+      transform: translateX(100%);
+      opacity: 0;
+      transition: all 0.3s ease;
+      max-width: 300px;
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    
+    .notification.success {
+      background: #28a745;
+    }
+    
+    .notification.error {
+      background: #dc3545;
+    }
+    
+    .notification.info {
+      background: #17a2b8;
+    }
+    
+    /* Estilos para validação de campos */
+    .validation-message {
+      font-size: 0.8em !important;
+      margin-top: 4px !important;
+      font-weight: 500;
+    }
+    
+    .field-valid {
+      border-color: #28a745 !important;
+    }
+    
+    .field-invalid {
+      border-color: #dc3545 !important;
+    }
+    
+    /* Estilos para requisitos de senha */
+    .password-requirements {
+      margin-top: 8px;
+      font-size: 0.85em;
+    }
+    
+    .requirement-item {
+      display: flex;
+      align-items: center;
+      margin: 4px 0;
+      color: #666;
+      transition: color 0.3s ease;
+    }
+    
+    .requirement-icon {
+      margin-right: 8px;
+      font-weight: bold;
+      min-width: 16px;
+    }
+    
+    /* Estilo para indicador de senhas coincidentes */
+    .password-match-indicator {
+      margin-top: 8px;
+      font-size: 0.85em;
+      font-weight: 500;
+    }
+    
+    /* Estilo para botão de verificar email */
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9em;
+      transition: background-color 0.3s ease;
+    }
+    
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    
+    /* Área de verificação de email */
+    .verification-area {
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+    }
+    
+    .verification-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .verification-input-group {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .verification-code {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+    
+    .btn-verify {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    
+    .btn-verify:hover {
+      background: #218838;
+    }
+    
+    .verification-status {
+      margin-top: 8px;
+      font-size: 0.85em;
+    }
+    
+    /* Estilos para avisos de domínio */
+    .domain-warning {
+      color: #856404 !important;
+      font-size: 11px !important;
+      display: block !important;
+      margin-top: 2px !important;
+    }
+    
+    /* Estilo para código completo */
+    .verification-code.code-complete {
+      background: rgba(40, 167, 69, 0.1) !important;
+      border-color: #28a745 !important;
+    }
+  </style>
+  
+  <script src="navigation.js"></script>
+  <script src="script.js"></script>
+  <script>
+    // Inicializar sistema de cadastro
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verificar se o usuário já está autenticado
+      const isAuthenticated = localStorage.getItem('userAuthenticated');
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      
+      if (isAuthenticated === 'true' && userData.nome) {
+        // Usuário já está autenticado, redirecionar para dashboard
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+      // Garantir que estamos no modo cadastro
+      document.body.className = 'cadastro-ativo';
+      
+      // Inicializar CSRF Token se não existir
+      if (!localStorage.getItem('csrfToken')) {
+        const token = generateCSRFToken();
+        localStorage.setItem('csrfToken', token);
+        console.log('CSRF Token gerado:', token);
+      }
+      
+      // Inicializar funcionalidades específicas do cadastro
+      if (typeof initializeRegistrationSystem === 'function') {
+        initializeRegistrationSystem();
+      }
+      
+      // Inicializar todas as funcionalidades do cadastro
+      initializeCadastroFunctionalities();
+    });
+
+    function generateCSRFToken() {
+      const array = new Uint32Array(4);
+      crypto.getRandomValues(array);
+      return Array.from(array, dec => ('0' + dec.toString(16)).substr(-2)).join('');
+    }
+
+    function initializeCadastroFunctionalities() {
+      // Formatação e validação de CPF
+      const cpfInput = document.getElementById('cadCpf');
+      if (cpfInput) {
+        cpfInput.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\D/g, '');
+          
+          if (value.length <= 11) {
+            // Formato CPF: 000.000.000-00
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+          } else {
+            // Formato CNPJ: 00.000.000/0000-00
+            value = value.replace(/(\d{2})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1/$2');
+            value = value.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+          }
+          
+          e.target.value = value;
+          validateCPF(value);
+        });
+        
+        cpfInput.addEventListener('blur', function(e) {
+          validateCPF(e.target.value);
+        });
+      }
+
+      // Formatação de telefones
+      const telefoneInput = document.getElementById('cadTelefone');
+      const celularInput = document.getElementById('cadCelular');
+      
+      [telefoneInput, celularInput].forEach(input => {
+        if (input) {
+          input.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.length <= 10) {
+              // Telefone fixo: (11) 9999-9999
+              value = value.replace(/(\d{2})(\d)/, '($1) $2');
+              value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            } else {
+              // Celular: (11) 99999-9999
+              value = value.replace(/(\d{2})(\d)/, '($1) $2');
+              value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            
+            e.target.value = value;
+          });
+        }
+      });
+
+      // Preenchimento automático de CEP
+      const cepInput = document.getElementById('cadCep');
+      if (cepInput) {
+        cepInput.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\D/g, '');
+          value = value.replace(/(\d{5})(\d)/, '$1-$2');
+          e.target.value = value;
+          
+          if (value.replace(/\D/g, '').length === 8) {
+            preencherEnderecoPorCep(value.replace(/\D/g, ''));
+          }
+        });
+      }
+
+      // Verificação de email com funcionalidades avançadas
+      const emailInput = document.getElementById('cadEmail');
+      const btnVerificarEmail = document.getElementById('btnVerificarEmail');
+      
+      if (emailInput) {
+        emailInput.addEventListener('input', function(e) {
+          const email = e.target.value.trim().toLowerCase();
+          console.log('Email input event triggered:', email);
+          validateEmail(email);
+          
+          // Reset status de verificação ao alterar email
+          emailVerificado = false;
+          const areaCodigoEmail = document.getElementById('areaCodigoEmail');
+          const statusCodigoEmail = document.getElementById('statusCodigoEmail');
+          const iconeEmailVerificado = document.getElementById('iconeEmailVerificado');
+          
+          if (areaCodigoEmail) areaCodigoEmail.style.display = 'none';
+          if (statusCodigoEmail) statusCodigoEmail.textContent = '';
+          if (iconeEmailVerificado) iconeEmailVerificado.style.display = 'none';
+          
+          // Verificar se é um domínio confiável
+          if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            verificarDominioEmail(email);
+          }
+        });
+        
+        emailInput.addEventListener('blur', function(e) {
+          console.log('Email blur event triggered:', e.target.value);
+          validateEmail(e.target.value.trim().toLowerCase());
+        });
+      }
+      
+      if (btnVerificarEmail) {
+        btnVerificarEmail.addEventListener('click', function() {
+          console.log('Botão verificar email clicado');
+          iniciarVerificacaoEmail();
+        });
+      }
+      
+      // Botão validar código email com funcionalidades avançadas
+      const btnValidarCodigoEmail = document.getElementById('btnValidarCodigoEmail');
+      const inputCodigoEmail = document.getElementById('inputCodigoEmail');
+      
+      if (btnValidarCodigoEmail) {
+        btnValidarCodigoEmail.addEventListener('click', function() {
+          console.log('Botão validar código clicado');
+          validarCodigoEmail();
+        });
+      }
+      
+      // Funcionalidades avançadas do campo de código
+      if (inputCodigoEmail) {
+        // Validar código ao pressionar Enter
+        inputCodigoEmail.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            validarCodigoEmail();
+          }
+        });
+        
+        // Formatar código automaticamente
+        inputCodigoEmail.addEventListener('input', function() {
+          this.value = this.value.replace(/\D/g, '').slice(0, 6);
+          
+          // Feedback visual para código completo
+          if (this.value.length === 6) {
+            this.classList.add('code-complete');
+            setTimeout(() => validarCodigoEmail(), 500);
+          } else {
+            this.classList.remove('code-complete');
+          }
+        });
+      }
+
+      // Validação de senha em tempo real
+      const senhaInput = document.getElementById('cadSenha');
+      const confirmSenhaInput = document.getElementById('cadSenha2');
+      
+      if (senhaInput) {
+        senhaInput.addEventListener('input', function(e) {
+          validatePassword(e.target.value);
+        });
+      }
+      
+      if (confirmSenhaInput) {
+        confirmSenhaInput.addEventListener('input', function(e) {
+          validatePasswordMatch();
+        });
+      }
+
+      // Submit do formulário
+      const formCadastro = document.getElementById('formCadastro');
+      if (formCadastro) {
+        formCadastro.addEventListener('submit', function(e) {
+          e.preventDefault();
+          handleCadastroSubmit();
+        });
+      }
+    }
+
+    function validateCPF(cpf) {
+      console.log('Validando CPF:', cpf);
+      const cleanCpf = cpf.replace(/\D/g, '');
+      console.log('CPF limpo:', cleanCpf);
+      
+      if (cleanCpf.length === 11) {
+        if (isValidCPF(cleanCpf)) {
+          console.log('CPF válido');
+          showFieldValidation('cadCpf', true, 'CPF válido');
+        } else {
+          console.log('CPF inválido');
+          showFieldValidation('cadCpf', false, 'CPF inválido');
+        }
+      } else if (cleanCpf.length === 14) {
+        // Validação básica de CNPJ
+        console.log('CNPJ detectado');
+        showFieldValidation('cadCpf', true, 'CNPJ válido');
+      } else if (cleanCpf.length > 0) {
+        console.log('CPF/CNPJ incompleto');
+        showFieldValidation('cadCpf', false, 'CPF/CNPJ incompleto');
+      } else {
+        console.log('CPF vazio, limpando validação');
+        // Limpar validação se estiver vazio
+        const field = document.getElementById('cadCpf');
+        const existingMsg = field.parentNode.querySelector('.validation-message');
+        if (existingMsg) {
+          existingMsg.remove();
+        }
+        field.style.borderColor = '';
+      }
+    }
+
+    function isValidCPF(cpf) {
+      if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+      
+      let sum = 0;
+      for (let i = 0; i < 9; i++) {
+        sum += parseInt(cpf.charAt(i)) * (10 - i);
+      }
+      let remainder = 11 - (sum % 11);
+      if (remainder === 10 || remainder === 11) remainder = 0;
+      if (remainder !== parseInt(cpf.charAt(9))) return false;
+      
+      sum = 0;
+      for (let i = 0; i < 10; i++) {
+        sum += parseInt(cpf.charAt(i)) * (11 - i);
+      }
+      remainder = 11 - (sum % 11);
+      if (remainder === 10 || remainder === 11) remainder = 0;
+      return remainder === parseInt(cpf.charAt(10));
+    }
+
+    async function preencherEnderecoPorCep(cep) {
+      console.log('Buscando CEP:', cep);
+      try {
+        toggleLoading(true);
+        
+        // Tentar ViaCEP primeiro
+        console.log('Tentando ViaCEP...');
+        let response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        let data = await response.json();
+        
+        console.log('Resposta ViaCEP:', data);
+        
+        if (data.erro) {
+          // Tentar BrasilAPI como fallback
+          console.log('ViaCEP falhou, tentando BrasilAPI...');
+          response = await fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`);
+          data = await response.json();
+          console.log('Resposta BrasilAPI:', data);
+        }
+        
+        if (data && !data.erro) {
+          const endereco = data.logradouro || data.street || '';
+          const bairro = data.bairro || data.district || '';
+          const cidade = data.localidade || data.city || '';
+          const estado = data.uf || data.state || '';
+          
+          console.log('Preenchendo campos:', { endereco, bairro, cidade, estado });
+          
+          document.getElementById('cadEndereco').value = endereco;
+          document.getElementById('cadBairro').value = bairro;
+          document.getElementById('cadCidade').value = cidade;
+          
+          const estadoSelect = document.getElementById('cadEstado');
+          if (estadoSelect) {
+            // Adicionar a opção se não existir
+            let optionExists = false;
+            for (let option of estadoSelect.options) {
+              if (option.value === estado) {
+                optionExists = true;
+                break;
+              }
+            }
+            if (!optionExists && estado) {
+              const newOption = document.createElement('option');
+              newOption.value = estado;
+              newOption.textContent = estado;
+              estadoSelect.appendChild(newOption);
+            }
+            estadoSelect.value = estado;
+          }
+          
+          mostrarNotificacao('Endereço preenchido automaticamente!', 'success');
+        } else {
+          console.log('CEP não encontrado');
+          mostrarNotificacao('CEP não encontrado', 'error');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar CEP:', error);
+        mostrarNotificacao('Erro ao buscar CEP', 'error');
+      } finally {
+        toggleLoading(false);
+      }
+    }
+
+    function validateEmail(email) {
+      console.log('Validando email:', email);
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const btnVerificarEmail = document.getElementById('btnVerificarEmail');
+      
+      if (email && emailRegex.test(email)) {
+        console.log('Email válido, mostrando botão');
+        showFieldValidation('cadEmail', true, 'Email válido');
+        if (btnVerificarEmail) {
+          btnVerificarEmail.style.display = 'block';
+        }
+      } else if (email) {
+        console.log('Email inválido');
+        showFieldValidation('cadEmail', false, 'Email inválido');
+        if (btnVerificarEmail) {
+          btnVerificarEmail.style.display = 'none';
+        }
+      } else {
+        console.log('Email vazio');
+        if (btnVerificarEmail) {
+          btnVerificarEmail.style.display = 'none';
+        }
+        // Limpar validação se estiver vazio
+        const field = document.getElementById('cadEmail');
+        const existingMsg = field.parentNode.querySelector('.validation-message');
+        if (existingMsg) {
+          existingMsg.remove();
+        }
+        field.style.borderColor = '';
+      }
+    }
+
+    function validatePassword(password) {
+      const requirements = {
+        'req-length': password.length >= 8,
+        'req-upper': /[A-Z]/.test(password),
+        'req-lower': /[a-z]/.test(password),
+        'req-number': /\d/.test(password),
+        'req-special': /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\?]/.test(password)
+      };
+      
+      Object.keys(requirements).forEach(reqId => {
+        const element = document.getElementById(reqId);
+        if (element) {
+          const icon = element.querySelector('.requirement-icon');
+          if (requirements[reqId]) {
+            icon.textContent = '✓';
+            icon.style.color = '#28a745';
+            element.style.color = '#28a745';
+          } else {
+            icon.textContent = '○';
+            icon.style.color = '#dc3545';
+            element.style.color = '#dc3545';
+          }
+        }
+      });
+      
+      validatePasswordMatch();
+    }
+
+    function validatePasswordMatch() {
+      const senha = document.getElementById('cadSenha').value;
+      const confirmSenha = document.getElementById('cadSenha2').value;
+      const indicator = document.getElementById('password-match-indicator');
+      
+      if (confirmSenha) {
+        if (senha === confirmSenha) {
+          indicator.textContent = '✓ Senhas coincidem';
+          indicator.style.color = '#28a745';
+        } else {
+          indicator.textContent = '✗ Senhas não coincidem';
+          indicator.style.color = '#dc3545';
+        }
+      } else {
+        indicator.textContent = '';
+      }
+    }
+
+    function showFieldValidation(fieldId, isValid, message) {
+      console.log('Mostrando validação para:', fieldId, isValid, message);
+      const field = document.getElementById(fieldId);
+      
+      if (!field) {
+        console.error('Campo não encontrado:', fieldId);
+        return;
+      }
+      
+      // Procurar por mensagem existente no parent ou próximo elemento
+      let parentElement = field.parentNode;
+      const existingMsg = parentElement.querySelector('.validation-message');
+      
+      if (existingMsg) {
+        existingMsg.remove();
+      }
+      
+      // Criar nova mensagem
+      const msgElement = document.createElement('div');
+      msgElement.className = 'validation-message';
+      msgElement.style.fontSize = '0.8em';
+      msgElement.style.marginTop = '4px';
+      msgElement.style.color = isValid ? '#28a745' : '#dc3545';
+      msgElement.textContent = message;
+      
+      // Adicionar após o campo
+      field.parentNode.appendChild(msgElement);
+      
+      // Alterar cor da borda
+      field.style.borderColor = isValid ? '#28a745' : '#dc3545';
+      
+      console.log('Validação aplicada com sucesso');
+    }
+
+    async function handleCadastroSubmit() {
+      try {
+        toggleLoading(true);
+        
+        // Validar todos os campos obrigatórios
+        const nome = document.getElementById('cadNome').value.trim();
+        const cpf = document.getElementById('cadCpf').value.replace(/\D/g, '');
+        const email = document.getElementById('cadEmail').value.trim().toLowerCase();
+        const cep = document.getElementById('cadCep').value.replace(/\D/g, '');
+        const endereco = document.getElementById('cadEndereco').value.trim();
+        const numero = document.getElementById('cadNumero').value.trim();
+        const apartamento = document.getElementById('cadApartamento').value.trim();
+        const bloco = document.getElementById('cadBloco').value.trim();
+        const senha = document.getElementById('cadSenha').value;
+        const confirmSenha = document.getElementById('cadSenha2').value;
+        
+        // Coleta todos os dados do formulário
+        const formData = {
+          nome,
+          cpf,
+          cep,
+          email,
+          endereco,
+          numero: numero,
+          complemento: document.getElementById('cadComplemento').value.trim(),
+          bairro: document.getElementById('cadBairro').value.trim(),
+          cidade: document.getElementById('cadCidade').value.trim(),
+          estado: document.getElementById('cadEstado').value,
+          apartamento,
+          bloco,
+          empreendimento: document.getElementById('cadEmpreendimento').value.trim(),
+          telefone: document.getElementById('cadTelefone').value,
+          celular: document.getElementById('cadCelular').value,
+          senha,
+          senha2: confirmSenha
+        };
+        
+        // Validações
+        if (!nome || nome.length < 2) {
+          throw new Error('Nome deve ter pelo menos 2 caracteres');
+        }
+        
+        if (!cpf || (cpf.length !== 11 && cpf.length !== 14)) {
+          throw new Error('CPF/CNPJ inválido');
+        }
+        
+        if (cpf.length === 11 && !isValidCPF(cpf)) {
+          throw new Error('CPF inválido');
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
+          throw new Error('Email inválido');
+        }
+        
+        if (!cep || cep.length !== 8) {
+          throw new Error('CEP inválido');
+        }
+        
+        if (!endereco) {
+          throw new Error('Endereço é obrigatório');
+        }
+        
+        if (!numero) {
+          throw new Error('Número é obrigatório');
+        }
+        
+        if (!apartamento) {
+          throw new Error('Apartamento é obrigatório');
+        }
+        
+        if (!bloco) {
+          throw new Error('Bloco é obrigatório');
+        }
+        
+        if (!senha || senha.length < 8) {
+          throw new Error('Senha deve ter pelo menos 8 caracteres');
+        }
+        
+        if (senha !== confirmSenha) {
+          throw new Error('Senhas não coincidem');
+        }
+        
+        // Coletar serviço selecionado
+        let servicoSelecionado = '';
+        const servicoInput = document.getElementById('cadServico');
+        if (servicoInput) {
+          servicoSelecionado = servicoInput.value;
+        }
+        
+        // Hash da senha no frontend (camada extra de segurança)
+        const hashedPassword = btoa(senha + 'salt_' + cpf);
+        
+        console.log('🚀 Enviando dados para API (igual clientes.html):', {
+          nome: nome,
+          cpf: cpf.substring(0, 3) + '***',
+          email,
+          cep,
+          endereco,
+          apartamento,
+          bloco,
+          servico: servicoSelecionado
+        });
+        
+        // Preparar dados no formato esperado pela API original (2 tabelas)
+        const dadosParaEnvio = {
+          tipo: 'novo_cliente',
+          nome_cliente: nome,
+          cpf: cpf,
+          cep: cep,
+          email: email,
+          endereco: endereco,
+          numero: numero,
+          complemento: document.getElementById('cadComplemento').value.trim(),
+          bairro: document.getElementById('cadBairro').value.trim(),
+          cidade: document.getElementById('cadCidade').value.trim(),
+          estado: document.getElementById('cadEstado').value,
+          apartamento: apartamento,
+          bloco: bloco,
+          nome_empreendimento: document.getElementById('cadEmpreendimento').value.trim(),
+          telefone: document.getElementById('cadTelefone').value,
+          celular: document.getElementById('cadCelular').value,
+          servico: servicoSelecionado,
+          senha: hashedPassword,
+          timestamp: Date.now(),
+          fingerprint: generateFingerprint()
+        };
+        
+        // Enviar para API do banco Neon (mesmo endpoint que clientes.html - salva em 2 tabelas)
+        console.log('📡 Fazendo requisição para:', 'https://chegar-primeiro.onrender.com/api/solicitacoes');
+        const response = await fetch('https://chegar-primeiro.onrender.com/api/solicitacoes', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': localStorage.getItem('csrfToken')
+          },
+          body: JSON.stringify(dadosParaEnvio)
+        });
+        
+        console.log('📊 Status da resposta:', response.status);
+        console.log('📋 Headers da resposta:', response.headers);
+        console.log('✅ Response OK:', response.ok);
+        
+        const data = await response.json();
+        console.log('📦 Dados da resposta completa:', data);
+        
+        if (response.ok && data.success) {
+          console.log('✅ Cadastro realizado com sucesso nas 2 tabelas (solicitacoes + clientes)!');
+          mostrarNotificacao('✅ Cadastro realizado com sucesso no banco Neon!', 'success');
+          
+          // Limpar formulário apenas se cadastrou com sucesso
+          document.getElementById('formCadastro').reset();
+          emailVerificado = false;
+          const iconeEmail = document.getElementById('iconeEmailVerificado');
+          if (iconeEmail) iconeEmail.style.display = 'none';
+          
+          // Reset das validações
+          document.querySelectorAll('.validation-message').forEach(msg => msg.remove());
+          document.querySelectorAll('input, select').forEach(field => {
+            field.style.borderColor = '';
+          });
+          
+          // Redirecionar apenas se salvou no banco
+          setTimeout(() => {
+            mostrarNotificacao('🚀 Redirecionando para login...', 'info');
+            setTimeout(() => {
+              window.location.href = 'login.html';
+            }, 1000);
+          }, 1500);
+          
+        } else if (response.ok && !data.success && data.motivo === 'ja_existe') {
+          // Cliente já existe - tratar especificamente
+          console.log('⚠️ Cliente já existe no sistema');
+          throw new Error('🔄 CPF ou Email já cadastrado. Faça login ou use dados diferentes.');
+        } else {
+          // Outros erros específicos do banco Neon
+          const errorMsg = data.error || 'Erro ao salvar no banco de dados Neon';
+          console.error('❌ Erro do banco Neon:', errorMsg);
+          
+          if (response.status === 500) {
+            throw new Error('🔥 Erro interno do servidor. Tente novamente em alguns instantes.');
+          } else if (response.status === 409) {
+            throw new Error('⚠️ CPF ou Email já cadastrado no sistema.');
+          } else if (response.status === 400) {
+            throw new Error('📝 Dados inválidos. Verifique os campos obrigatórios.');
+          } else {
+            throw new Error('💾 Erro ao salvar no banco Neon: ' + errorMsg);
+          }
+        }
+        
+      } catch (error) {
+        console.error('❌ Erro no cadastro:', error);
+        
+        // Tratar diferentes tipos de erro com mais especificidade
+        let errorMessage = error.message;
+        
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          errorMessage = '🌐 Erro de conexão com o servidor. Verifique sua internet e tente novamente.';
+        } else if (error.message.includes('NetworkError')) {
+          errorMessage = '📡 Erro de rede. Verifique sua conexão e tente novamente.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage = '⏱️ Tempo limite excedido. O servidor pode estar sobrecarregado.';
+        } else if (error.message.includes('Failed to fetch')) {
+          errorMessage = '🔌 Não foi possível conectar ao banco Neon. Tente novamente em alguns instantes.';
+        } else if (error.message.includes('Internal Server Error')) {
+          errorMessage = '⚠️ Erro interno do servidor Neon. Tente novamente em alguns minutos.';
+        }
+        
+        // Sempre mostrar o erro específico
+        mostrarNotificacao(errorMessage, 'error', 8000);
+        
+        // Log detalhado para debug
+        console.error('Detalhes do erro:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          timestamp: new Date().toISOString()
+        });
+      } finally {
+        toggleLoading(false);
+      }
+    }
+
+    function mostrarNotificacao(mensagem, tipo = 'info', duracao = 5000) {
+      const notification = document.getElementById('notification');
+      if (!notification) return;
+      
+      notification.className = `notification show ${tipo}`;
+      notification.textContent = mensagem;
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, duracao);
+    }
+
+    function toggleLoading(show = true) {
+      const overlay = document.getElementById('loadingOverlay');
+      if (overlay) {
+        overlay.style.display = show ? 'flex' : 'none';
+      }
+    }
+
+    // Sistema de verificação de email com envio real
+    let emailVerificado = false;
+    let emailVerificationTimer = null;
+    
+    function iniciarVerificacaoEmail() {
+      console.log('Iniciando verificação de email');
+      const email = document.getElementById('cadEmail').value.trim().toLowerCase();
+      const btnVerificarEmail = document.getElementById('btnVerificarEmail');
+      const areaCodigoEmail = document.getElementById('areaCodigoEmail');
+      const statusCodigoEmail = document.getElementById('statusCodigoEmail');
+      const inputCodigoEmail = document.getElementById('inputCodigoEmail');
+      
+      console.log('Email:', email);
+      console.log('Botão encontrado:', !!btnVerificarEmail);
+      console.log('Área código encontrada:', !!areaCodigoEmail);
+      
+      if (!email) {
+        mostrarNotificacao('Digite um email válido primeiro', 'error');
+        return;
+      }
+      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        mostrarNotificacao('Digite um email válido', 'error');
+        return;
+      }
+      
+      // Verificar se é um domínio confiável
+      if (!isEmailDomainTrusted(email)) {
+        if (!confirm('Este domínio de email não é muito comum. Tem certeza que o email está correto?')) {
+          return;
+        }
+      }
+      
+      if (btnVerificarEmail) {
+        btnVerificarEmail.disabled = true;
+        btnVerificarEmail.textContent = 'Enviando...';
+      }
+      
+      // Enviar código real via API
+      fetch('https://chegar-primeiro.onrender.com/api/enviar-codigo-email', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': localStorage.getItem('csrfToken')
+        },
+        body: JSON.stringify({ 
+          email,
+          timestamp: Date.now(),
+          fingerprint: generateFingerprint()
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (btnVerificarEmail) {
+          btnVerificarEmail.disabled = false;
+          btnVerificarEmail.textContent = 'Verificar e-mail';
+        }
+        
+        if (data.success) {
+          if (areaCodigoEmail) {
+            areaCodigoEmail.style.display = 'block';
+          }
+          if (statusCodigoEmail) {
+            statusCodigoEmail.textContent = 'Código enviado! Confira seu e-mail (inclusive spam).';
+            statusCodigoEmail.style.color = '#28a745';
+          }
+          if (btnVerificarEmail) {
+            btnVerificarEmail.style.display = 'none';
+          }
+          
+          emailVerificado = false;
+          document.getElementById('iconeEmailVerificado').style.display = 'none';
+          
+          // Timer de expiração do código (5 minutos)
+          startEmailVerificationTimer();
+          
+          // Focar no campo de código
+          if (inputCodigoEmail) {
+            inputCodigoEmail.focus();
+          }
+          
+          mostrarNotificacao('Código enviado para ' + email, 'success');
+        } else {
+          mostrarNotificacao(data.error || 'Erro ao enviar código.', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao enviar código:', error);
+        if (btnVerificarEmail) {
+          btnVerificarEmail.disabled = false;
+          btnVerificarEmail.textContent = 'Verificar e-mail';
+        }
+        mostrarNotificacao('Erro ao enviar código.', 'error');
+      });
+    }
+
+    function validarCodigoEmail() {
+      console.log('Validando código de email');
+      const email = document.getElementById('cadEmail').value.trim().toLowerCase();
+      const codigoDigitado = document.getElementById('inputCodigoEmail').value.trim();
+      const statusElement = document.getElementById('statusCodigoEmail');
+      const iconeEmailVerificado = document.getElementById('iconeEmailVerificado');
+      const areaCodigoEmail = document.getElementById('areaCodigoEmail');
+      const btnValidarCodigoEmail = document.getElementById('btnValidarCodigoEmail');
+      
+      console.log('Código digitado:', codigoDigitado);
+      console.log('Email:', email);
+      
+      if (!codigoDigitado || codigoDigitado.length !== 6) {
+        mostrarNotificacao('Digite o código de 6 dígitos.', 'error');
+        if (document.getElementById('inputCodigoEmail')) {
+          document.getElementById('inputCodigoEmail').focus();
+        }
+        return;
+      }
+      
+      if (btnValidarCodigoEmail) {
+        btnValidarCodigoEmail.disabled = true;
+        btnValidarCodigoEmail.textContent = 'Validando...';
+      }
+      
+      // Validar código real via API
+      fetch('https://chegar-primeiro.onrender.com/api/validar-codigo-email', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': localStorage.getItem('csrfToken')
+        },
+        body: JSON.stringify({ 
+          email, 
+          codigo: codigoDigitado,
+          timestamp: Date.now()
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (btnValidarCodigoEmail) {
+          btnValidarCodigoEmail.disabled = false;
+          btnValidarCodigoEmail.textContent = 'Validar código';
+        }
+        
+        if (data.success) {
+          console.log('Código validado com sucesso!');
+          if (statusElement) {
+            statusElement.textContent = 'E-mail verificado com sucesso!';
+            statusElement.style.color = '#28a745';
+          }
+          if (iconeEmailVerificado) {
+            iconeEmailVerificado.style.display = 'inline';
+          }
+          if (areaCodigoEmail) {
+            areaCodigoEmail.style.display = 'none';
+          }
+          emailVerificado = true;
+          clearEmailVerificationTimer();
+          mostrarNotificacao('Email verificado com sucesso!', 'success');
+        } else {
+          console.log('Código incorreto!');
+          if (statusElement) {
+            statusElement.textContent = data.error || 'Código inválido.';
+            statusElement.style.color = '#dc3545';
+          }
+          document.getElementById('inputCodigoEmail').value = '';
+          document.getElementById('inputCodigoEmail').focus();
+          mostrarNotificacao('Código incorreto', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao validar código:', error);
+        if (btnValidarCodigoEmail) {
+          btnValidarCodigoEmail.disabled = false;
+          btnValidarCodigoEmail.textContent = 'Validar código';
+        }
+        mostrarNotificacao('Erro ao validar código.', 'error');
+      });
+    }
+
+    // Função para alternar visibilidade da senha
+    function togglePasswordVisibility(fieldId) {
+      const field = document.getElementById(fieldId);
+      const button = field.nextElementSibling;
+      
+      if (field.type === 'password') {
+        field.type = 'text';
+        button.textContent = '🙈';
+      } else {
+        field.type = 'password';
+        button.textContent = '👁';
+      }
+    }
+
+    // Função para abrir modal de serviços
+    function abrirModalServicos(contexto) {
+      window.modalServicoContexto = contexto;
+      document.getElementById('modalServicos').style.display = 'flex';
+    }
+
+    // Função para fechar modal de serviços
+    function fecharModalServicos() {
+      document.getElementById('modalServicos').style.display = 'none';
+    }
+
+    function selecionarServico(nomeServico, contexto) {
+      const container = document.getElementById('cadServicoContainer');
+      container.innerHTML = `
+        <div class="servico-selecionado">
+          <span class="servico-nome">${nomeServico}</span>
+          <button type="button" onclick="abrirModalServicos('${contexto}')" class="btn-alterar-servico">Alterar</button>
+        </div>
+      `;
+      fecharModalServicos();
+    }
+
+    // Funções auxiliares para o sistema de email
+    function startEmailVerificationTimer() {
+      clearEmailVerificationTimer();
+      let timeLeft = 300; // 5 minutos
+      const statusCodigoEmail = document.getElementById('statusCodigoEmail');
+      const areaCodigoEmail = document.getElementById('areaCodigoEmail');
+      const btnVerificarEmail = document.getElementById('btnVerificarEmail');
+      
+      emailVerificationTimer = setInterval(() => {
+        timeLeft--;
+        
+        if (timeLeft <= 0) {
+          clearEmailVerificationTimer();
+          if (statusCodigoEmail) {
+            statusCodigoEmail.textContent = 'Código expirado. Solicite um novo código.';
+            statusCodigoEmail.style.color = '#dc3545';
+          }
+          if (areaCodigoEmail) {
+            areaCodigoEmail.style.display = 'none';
+          }
+          if (btnVerificarEmail) {
+            btnVerificarEmail.style.display = 'block';
+          }
+        } else if (timeLeft <= 60) {
+          if (statusCodigoEmail) {
+            statusCodigoEmail.textContent = `Código expira em ${timeLeft}s`;
+            statusCodigoEmail.style.color = '#ffc107';
+          }
+        }
+      }, 1000);
+    }
+
+    function clearEmailVerificationTimer() {
+      if (emailVerificationTimer) {
+        clearInterval(emailVerificationTimer);
+        emailVerificationTimer = null;
+      }
+    }
+
+    function isEmailDomainTrusted(email) {
+      const domain = email.split('@')[1];
+      const trustedDomains = [
+        'gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com',
+        'terra.com.br', 'uol.com.br', 'globo.com', 'bol.com.br', 'ig.com.br',
+        'live.com', 'msn.com', 'yahoo.com.br'
+      ];
+      return trustedDomains.includes(domain);
+    }
+
+    function generateFingerprint() {
+      // Gerar um fingerprint mais robusto do dispositivo para segurança
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillText('Fingerprint test', 2, 2);
+      
+      return btoa(JSON.stringify({
+        screen: `${screen.width}x${screen.height}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        language: navigator.language,
+        platform: navigator.platform,
+        canvas: canvas.toDataURL(),
+        userAgent: navigator.userAgent.substring(0, 100),
+        timestamp: Date.now()
+      }));
+    }
+
+    function verificarDominioEmail(email) {
+      const domain = email.split('@')[1];
+      const trustedDomains = [
+        'gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com',
+        'terra.com.br', 'uol.com.br', 'globo.com', 'bol.com.br', 'ig.com.br'
+      ];
+      
+      const emailInput = document.getElementById('cadEmail');
+      if (!emailInput) return;
+      
+      // Remover aviso anterior
+      const existingWarning = emailInput.parentNode.querySelector('.domain-warning');
+      if (existingWarning) existingWarning.remove();
+      
+      if (!trustedDomains.includes(domain)) {
+        const warning = document.createElement('small');
+        warning.style.cssText = 'color: #856404; font-size: 11px; display: block; margin-top: 2px;';
+        warning.textContent = 'Domínio não muito comum. Verifique se está correto.';
+        warning.className = 'domain-warning';
+        emailInput.parentNode.appendChild(warning);
+      }
+    }
+  </script>
+</body>
+</html>
