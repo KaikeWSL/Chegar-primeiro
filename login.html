@@ -258,6 +258,10 @@
               cpfOriginal: document.getElementById('loginCpf').value
             });
             
+            // Aplicar o mesmo hash que o cadastro usa
+            const hashedPassword = btoa(senha + 'salt_' + cpf);
+            console.log('Senha hashada para login:', hashedPassword.substring(0, 20) + '...');
+            
             // Usar a API de login correta com verificação de senha
             const response = await fetch('https://chegar-primeiro.onrender.com/api/login', {
               method: 'POST',
@@ -266,7 +270,7 @@
               },
               body: JSON.stringify({
                 cpf: cpf,
-                senha: senha
+                senha: hashedPassword  // Enviar senha hashada
               })
             });
             

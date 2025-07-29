@@ -1035,7 +1035,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // === SISTEMA DE CADASTRO AVANÇADO ===
   const formCadastro = document.getElementById('formCadastro');
-  if (formCadastro) {
+  // Verificar se estamos na página cadastro.html que tem seu próprio sistema
+  const isCadastroPage = window.location.href.includes('cadastro.html') || document.body.classList.contains('cadastro-ativo');
+  if (formCadastro && !isCadastroPage) {
     
     // Verificador de força da senha em tempo real
     const senhaInput = document.getElementById('cadSenha');
@@ -1574,7 +1576,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Verificar se é um domínio confiável
       if (emailValido) {
-        verificarDominioEmail(email);
+        verificarDominioEmail(email, this);
       }
     });
 
@@ -1744,7 +1746,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  function verificarDominioEmail(email) {
+  function verificarDominioEmail(email, emailInput) {
+    if (!emailInput) return; // Proteção se o input não for fornecido
+    
     const domain = email.split('@')[1];
     const trustedDomains = [
       'gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com',
@@ -1756,13 +1760,13 @@ document.addEventListener('DOMContentLoaded', function() {
       warning.style.cssText = 'color: #856404; font-size: 11px; display: block; margin-top: 2px;';
       warning.textContent = 'Domínio não muito comum. Verifique se está correto.';
       
-      const existingWarning = cadEmailInput.parentNode.querySelector('.domain-warning');
+      const existingWarning = emailInput.parentNode.querySelector('.domain-warning');
       if (existingWarning) existingWarning.remove();
       
       warning.className = 'domain-warning';
-      cadEmailInput.parentNode.appendChild(warning);
+      emailInput.parentNode.appendChild(warning);
     } else {
-      const existingWarning = cadEmailInput.parentNode.querySelector('.domain-warning');
+      const existingWarning = emailInput.parentNode.querySelector('.domain-warning');
       if (existingWarning) existingWarning.remove();
     }
   }
@@ -1777,7 +1781,11 @@ document.addEventListener('DOMContentLoaded', function() {
     return trustedDomains.includes(domain);
   }
 
-  setupEmailVerification();
+  // Só executar setupEmailVerification se não estivermos na página cadastro.html
+  const isCadastroPageForEmailSetup = window.location.href.includes('cadastro.html') || document.body.classList.contains('cadastro-ativo');
+  if (!isCadastroPageForEmailSetup) {
+    setupEmailVerification();
+  }
 
   // --- Recuperação de senha ---
 
@@ -2183,7 +2191,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // Inicializar todas as funcionalidades do novo design
   function initializeNewDesign() {
     setupPasswordValidation();
-    setupEmailVerificationUI();
+    const isCadastroPageForInit = window.location.href.includes('cadastro.html') || document.body.classList.contains('cadastro-ativo');
+    if (!isCadastroPageForInit) {
+      setupEmailVerificationUI();
+    }
     setupServiceSelection();
     setupRealTimeValidation();
     animateFormSections();

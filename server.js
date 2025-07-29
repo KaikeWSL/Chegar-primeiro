@@ -269,29 +269,29 @@ async function salvarSolicitacao(dados) {
       // Associar cliente ao serviço se foi fornecido
       if (dados.servico || dados.novo_servico) {
         const servicoNome = dados.servico || dados.novo_servico;
-        console.log(`[${new Date().toISOString()}] [INFO] Associando cliente ao serviço: ${servicoNome}`);
+        console.log(`[${new Date().toISOString()}] [INFO] Associando cliente à oferta: ${servicoNome}`);
         
         try {
-          // Buscar o ID do serviço pelo nome
+          // Buscar o ID da oferta pelo nome
           const servicoResult = await executarQuery(
-            `SELECT id FROM servicos WHERE nome = $1 LIMIT 1`,
+            `SELECT id FROM ofertas WHERE nome = $1 LIMIT 1`,
             [servicoNome]
           );
           
           if (servicoResult.rows.length > 0) {
             const servicoId = servicoResult.rows[0].id;
             
-            // Inserir na tabela cliente_servicos
+            // Inserir na tabela cliente_ofertas
             await executarQuery(
-              `INSERT INTO cliente_servicos (cliente_id, servico_id) VALUES ($1, $2)`,
+              `INSERT INTO cliente_ofertas (cliente_id, oferta_id) VALUES ($1, $2)`,
               [clienteId, servicoId]
             );
-            console.log(`[${new Date().toISOString()}] [INFO] Associação cliente-serviço criada com sucesso`);
+            console.log(`[${new Date().toISOString()}] [INFO] Associação cliente-oferta criada com sucesso`);
           } else {
-            console.warn(`[${new Date().toISOString()}] [WARN] Serviço não encontrado: ${servicoNome}`);
+            console.warn(`[${new Date().toISOString()}] [WARN] Oferta não encontrada: ${servicoNome}`);
           }
         } catch (err) {
-          console.error(`[${new Date().toISOString()}] [ERROR] Erro ao associar cliente ao serviço:`, err);
+          console.error(`[${new Date().toISOString()}] [ERROR] Erro ao associar cliente à oferta:`, err);
         }
       }
       
@@ -930,6 +930,307 @@ app.post('/api/sindico-login', async (req, res) => {
     res.status(500).json({ success: false, error: 'Erro ao fazer login' });
   }
 });
+
+// ===============================
+// ENDPOINTS DE OFERTAS
+// ===============================
+
+// Endpoint para inicializar/atualizar estrutura da tabela de ofertas
+app.post('/api/ofertas/inicializar-tabela', async (req, res) => {
+  try {
+    console.log(`[${new Date().toISOString()}] [INFO] Inicializando estrutura da tabela ofertas`);
+    
+    // Criar tabela de ofertas se não existir
+    await executarQuery(`
+      CREATE TABLE IF NOT EXISTS ofertas (
+        id SERIAL PRIMARY KEY,
+        nome TEXT NOT NULL UNIQUE,
+        tipo TEXT NOT NULL,
+        velocidade TEXT,
+        beneficios TEXT,
+        preco DECIMAL(10,2) NOT NULL,
+        preco_promocional DECIMAL(10,2),
+        ordem INTEGER DEFAULT 999,
+        ativo BOOLEAN DEFAULT true,
+        data_criacao TIMESTAMP DEFAULT NOW(),
+        data_atualizacao TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    
+    // Verificar se colunas existem e adicionar se necessário
+    const colunas = [
+      { nome: 'tipo', tipo: 'TEXT' },
+      { nome: 'velocidade', tipo: 'TEXT' },
+      { nome: 'beneficios', tipo: 'TEXT' },
+      { nome: 'preco_promocional', tipo: 'DECIMAL(10,2)' },
+      { nome: 'ordem', tipo: 'INTEGER DEFAULT 999' },
+      { nome: 'ativo', tipo: 'BOOLEAN DEFAULT true' },
+      { nome: 'data_criacao', tipo: 'TIMESTAMP DEFAULT NOW()' },
+      { nome: 'data_atualizacao', tipo: 'TIMESTAMP DEFAULT NOW()' }
+    ];
+    
+    for (const coluna of colunas) {
+      try {
+        await executarQuery(`
+          ALTER TABLE ofertas 
+          ADD COLUMN IF NOT EXISTS ${coluna.nome} ${coluna.tipo}
+        `);
+      } catch (err) {
+        console.log(`[${new Date().toISOString()}] [INFO] Coluna ${coluna.nome} já existe ou erro ao adicionar:`, err.message);
+      }
+    }
+    
+    // Criar índices para performance
+    try {
+      await executarQuery(`CREATE INDEX IF NOT EXISTS idx_ofertas_ativo ON ofertas(ativo)`);
+      await executarQuery(`CREATE INDEX IF NOT EXISTS idx_ofertas_ordem ON ofertas(ordem)`);
+      await executarQuery(`CREATE INDEX IF NOT EXISTS idx_ofertas_tipo ON ofertas(tipo)`);
+    } catch (err) {
+      console.log(`[${new Date().toISOString()}] [INFO] Índices já existem:`, err.message);
+    }
+    
+    console.log(`[${new Date().toISOString()}] [INFO] Estrutura da tabela ofertas inicializada com sucesso`);
+    res.json({ 
+      success: true, 
+      message: 'Estrutura da tabela ofertas inicializada com sucesso' 
+    });
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] [ERROR] Erro ao inicializar tabela ofertas:`, err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro ao inicializar tabela ofertas' 
+    });
+  }
+});
+
+// Endpoint para buscar todas as ofertas disponíveis
+app.get('/api/ofertas', async (req, res) => {
+  try {
+    console.log(`[${new Date().toISOString()}] [INFO] Buscando ofertas disponíveis`);
+    
+    const result = await executarQuery(`
+      SELECT id, nome, tipo, velocidade, beneficios, preco, preco_promocional, ativo, ordem
+      FROM ofertas 
+      WHERE ativo = true 
+      ORDER BY ordem ASC, nome ASC
+    `);
+    
+    console.log(`[${new Date().toISOString()}] [INFO] ${result.rows.length} ofertas encontradas`);
+    res.json({ 
+      success: true, 
+      ofertas: result.rows 
+    });
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] [ERROR] Erro ao buscar ofertas:`, err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro ao buscar ofertas' 
+    });
+  }
+});
+
+// Endpoint para adicionar nova oferta (para administração)
+app.post('/api/ofertas', async (req, res) => {
+  const { nome, tipo, velocidade, beneficios, preco, preco_promocional, ordem } = req.body;
+  
+  if (!nome || !tipo || !preco) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Nome, tipo e preço são obrigatórios' 
+    });
+  }
+  
+  try {
+    console.log(`[${new Date().toISOString()}] [INFO] Adicionando nova oferta: ${nome}`);
+    
+    const result = await executarQuery(`
+      INSERT INTO ofertas (nome, tipo, velocidade, beneficios, preco, preco_promocional, ordem, ativo)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, true)
+      RETURNING *
+    `, [nome, tipo, velocidade, beneficios, preco, preco_promocional, ordem || 999]);
+    
+    console.log(`[${new Date().toISOString()}] [INFO] Oferta adicionada com sucesso: ID ${result.rows[0].id}`);
+    res.json({ 
+      success: true, 
+      oferta: result.rows[0] 
+    });
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] [ERROR] Erro ao adicionar oferta:`, err);
+    
+    if (err.code === '23505') { // Duplicate key
+      res.status(400).json({ 
+        success: false, 
+        error: 'Oferta com este nome já existe' 
+      });
+    } else {
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erro ao adicionar oferta' 
+      });
+    }
+  }
+});
+
+// Endpoint para atualizar oferta existente
+app.put('/api/ofertas/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nome, tipo, velocidade, beneficios, preco, preco_promocional, ordem, ativo } = req.body;
+  
+  try {
+    console.log(`[${new Date().toISOString()}] [INFO] Atualizando oferta ID: ${id}`);
+    
+    const result = await executarQuery(`
+      UPDATE ofertas 
+      SET nome = COALESCE($1, nome),
+          tipo = COALESCE($2, tipo),
+          velocidade = COALESCE($3, velocidade),
+          beneficios = COALESCE($4, beneficios),
+          preco = COALESCE($5, preco),
+          preco_promocional = COALESCE($6, preco_promocional),
+          ordem = COALESCE($7, ordem),
+          ativo = COALESCE($8, ativo),
+          data_atualizacao = NOW()
+      WHERE id = $9
+      RETURNING *
+    `, [nome, tipo, velocidade, beneficios, preco, preco_promocional, ordem, ativo, id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Oferta não encontrada' 
+      });
+    }
+    
+    console.log(`[${new Date().toISOString()}] [INFO] Oferta atualizada com sucesso`);
+    res.json({ 
+      success: true, 
+      oferta: result.rows[0] 
+    });
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] [ERROR] Erro ao atualizar oferta:`, err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro ao atualizar oferta' 
+    });
+  }
+});
+
+// Endpoint para desativar oferta (soft delete)
+app.delete('/api/ofertas/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    console.log(`[${new Date().toISOString()}] [INFO] Desativando oferta ID: ${id}`);
+    
+    const result = await executarQuery(`
+      UPDATE ofertas 
+      SET ativo = false, data_atualizacao = NOW()
+      WHERE id = $1
+      RETURNING *
+    `, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Oferta não encontrada' 
+      });
+    }
+    
+    console.log(`[${new Date().toISOString()}] [INFO] Oferta desativada com sucesso`);
+    res.json({ 
+      success: true, 
+      message: 'Oferta desativada com sucesso' 
+    });
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] [ERROR] Erro ao desativar oferta:`, err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro ao desativar oferta' 
+    });
+  }
+});
+
+// Endpoint para popular ofertas padrão (executa uma vez para configurar)
+app.post('/api/ofertas/popular-padrao', async (req, res) => {
+  try {
+    console.log(`[${new Date().toISOString()}] [INFO] Populando ofertas padrão`);
+    
+    const ofertasPadrao = [
+      {
+        nome: 'Claro fibra 350 MEGA + globoplay',
+        tipo: 'fibra',
+        velocidade: '350 MEGA',
+        beneficios: 'globoplay + Wi-Fi Grátis + McAfee + E-books',
+        preco: 79.90,
+        ordem: 1
+      },
+      {
+        nome: 'Claro fibra 600 MEGA + globoplay + Claro pós 60GB',
+        tipo: 'fibra',
+        velocidade: '600 MEGA',
+        beneficios: 'globoplay + Wi-Fi Grátis + Claro pós 60GB',
+        preco: 159.90,
+        ordem: 2
+      },
+      {
+        nome: 'Claro controle 30GB + bônus',
+        tipo: 'controle',
+        velocidade: '30GB',
+        beneficios: '15GB + 5GB redes sociais + WhatsApp ilimitado + 10GB bônus',
+        preco: 59.90,
+        ordem: 3
+      },
+      {
+        nome: 'Claro pós 50GB',
+        tipo: 'pós',
+        velocidade: '50GB',
+        beneficios: '25GB + 25GB + WhatsApp ilimitado',
+        preco: 119.90,
+        ordem: 4
+      }
+    ];
+    
+    let adicionados = 0;
+    
+    for (const oferta of ofertasPadrao) {
+      try {
+        // Verificar se já existe
+        const existeResult = await executarQuery(
+          'SELECT id FROM ofertas WHERE nome = $1',
+          [oferta.nome]
+        );
+        
+        if (existeResult.rows.length === 0) {
+          await executarQuery(`
+            INSERT INTO ofertas (nome, tipo, velocidade, beneficios, preco, ordem, ativo)
+            VALUES ($1, $2, $3, $4, $5, $6, true)
+          `, [oferta.nome, oferta.tipo, oferta.velocidade, oferta.beneficios, oferta.preco, oferta.ordem]);
+          
+          adicionados++;
+          console.log(`[${new Date().toISOString()}] [INFO] Oferta adicionada: ${oferta.nome}`);
+        }
+      } catch (err) {
+        console.error(`[${new Date().toISOString()}] [ERROR] Erro ao adicionar oferta ${oferta.nome}:`, err);
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `${adicionados} ofertas padrão adicionadas`,
+      adicionados 
+    });
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] [ERROR] Erro ao popular ofertas padrão:`, err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro ao popular ofertas padrão' 
+    });
+  }
+});
+
+// ===============================
+// ENDPOINT DE HEALTH CHECK
+// ===============================
 
 // Endpoint de health check
 app.get('/api/health', async (req, res) => {
