@@ -241,8 +241,8 @@ async function salvarSolicitacao(dados) {
     try {
       const clienteResult = await executarQuery(
         `INSERT INTO clientes
-          (nome, cpf, cep, email, endereco, numero, complemento, bairro, cidade, estado, apartamento, bloco, empreendimento, telefone, celular, senha_hash, fingerprint)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING id`,
+          (nome, cpf, cep, email, endereco, numero, complemento, bairro, cidade, estado, apartamento, bloco, empreendimento, telefone, celular, senha_hash, fingerprint,servico)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING id`,
         [
           dados.nome_cliente || null,
           dados.cpf || null,
@@ -260,7 +260,9 @@ async function salvarSolicitacao(dados) {
           dados.telefone || null,
           dados.celular || null,
           senhaHash,
-          dados.fingerprint || null
+          dados.fingerprint || null,
+          dados.servico || null
+          
         ]
       );
       const clienteId = clienteResult.rows[0].id;

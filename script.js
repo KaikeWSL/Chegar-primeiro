@@ -1789,9 +1789,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- Recuperação de senha ---
 
-  document.getElementById('btnEsqueciSenha').addEventListener('click', function() {
-    abrirModalRecuperarSenha();
-  });
+  const btnEsqueciSenha = document.getElementById('btnEsqueciSenha');
+  if (btnEsqueciSenha) {
+    btnEsqueciSenha.addEventListener('click', function() {
+      abrirModalRecuperarSenha();
+    });
+  }
 
   function abrirModalRecuperarSenha() {
     document.getElementById('modalRecuperarSenha').style.display = 'flex';
@@ -1819,12 +1822,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Etapa 1: Buscar e-mail por CPF
   const btnBuscarEmailRec = document.getElementById('btnBuscarEmailRec');
-  btnBuscarEmailRec.addEventListener('click', function() {
-    const cpf = document.getElementById('recCpf').value.replace(/\D/g, '');
-    if (cpf.length !== 11) {
-      mostrarMensagem('CPF inválido!', false);
-      return;
-    }
+  if (btnBuscarEmailRec) {
+    btnBuscarEmailRec.addEventListener('click', function() {
+      const cpf = document.getElementById('recCpf').value.replace(/\D/g, '');
+      if (cpf.length !== 11) {
+        mostrarMensagem('CPF inválido!', false);
+        return;
+      }
     mostrarCarregando();
     fetch('https://chegar-primeiro.onrender.com/api/recuperar-email', {
       method: 'POST',
@@ -1849,11 +1853,13 @@ document.addEventListener('DOMContentLoaded', function() {
       mostrarMensagem('Erro ao buscar e-mail!', false);
     });
   });
+  }
 
   // Etapa 2: Enviar código de verificação
   const btnEnviarCodigoRec = document.getElementById('btnEnviarCodigoRec');
-  btnEnviarCodigoRec.addEventListener('click', function() {
-    if (!recCpfGlobal) return;
+  if (btnEnviarCodigoRec) {
+    btnEnviarCodigoRec.addEventListener('click', function() {
+      if (!recCpfGlobal) return;
     mostrarCarregando();
     fetch('https://chegar-primeiro.onrender.com/api/enviar-codigo-recuperacao', {
       method: 'POST',
@@ -1878,10 +1884,12 @@ document.addEventListener('DOMContentLoaded', function() {
       mostrarMensagem('Erro ao enviar código!', false);
     });
   });
+  }
 
   // Etapa 3: Validar código
   const btnValidarCodigoRec = document.getElementById('btnValidarCodigoRec');
-  btnValidarCodigoRec.addEventListener('click', function() {
+  if (btnValidarCodigoRec) {
+    btnValidarCodigoRec.addEventListener('click', function() {
     const codigo = document.getElementById('recCodigo').value.trim();
     if (!codigo || codigo.length !== 6) {
       document.getElementById('recStatusCodigo').textContent = 'Digite o código de 6 dígitos.';
@@ -1894,12 +1902,15 @@ document.addEventListener('DOMContentLoaded', function() {
     etapaRecSenha = 4;
   });
 
+  }
+
   // Etapa 4: Trocar senha
   const btnTrocarSenhaRec = document.getElementById('btnTrocarSenhaRec');
-  btnTrocarSenhaRec.addEventListener('click', function() {
-    const novaSenha = document.getElementById('recNovaSenha').value;
-    const novaSenha2 = document.getElementById('recNovaSenha2').value;
-    const codigo = document.getElementById('recCodigo').value.trim();
+  if (btnTrocarSenhaRec) {
+    btnTrocarSenhaRec.addEventListener('click', function() {
+      const novaSenha = document.getElementById('recNovaSenha').value;
+      const novaSenha2 = document.getElementById('recNovaSenha2').value;
+      const codigo = document.getElementById('recCodigo').value.trim();
     if (!novaSenha || !novaSenha2) {
       mostrarMensagem('Preencha os campos de senha!', false);
       return;
@@ -1933,7 +1944,8 @@ document.addEventListener('DOMContentLoaded', function() {
       esconderCarregando();
       mostrarMensagem('Erro ao trocar senha!', false);
     });
-  });
+    });
+  }
 
   // === FUNCIONALIDADES PARA O NOVO DESIGN ===
   
@@ -2254,6 +2266,10 @@ document.addEventListener('DOMContentLoaded', function() {
     },
     
     sendToServer: function(logEntry) {
+      // TEMPORARIAMENTE DESABILITADO - endpoint não existe ainda
+      // TODO: Implementar endpoint /api/security-log no servidor
+      return; 
+      
       // Enviar de forma assíncrona sem bloquear a UI
       setTimeout(() => {
         fetch('https://chegar-primeiro.onrender.com/api/security-log', {
@@ -3144,9 +3160,12 @@ class AdvancedPasswordRecovery {
     `;
     
     // Adicionar formatação
-    document.getElementById('recoveryCpf').addEventListener('input', function() {
-      this.value = formatCPF(this.value);
-    });
+    const recoveryCpfField = document.getElementById('recoveryCpf');
+    if (recoveryCpfField) {
+      recoveryCpfField.addEventListener('input', function() {
+        this.value = formatCPF(this.value);
+      });
+    }
     
     window.advancedRecovery = this;
   }

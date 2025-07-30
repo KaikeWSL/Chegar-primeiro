@@ -526,6 +526,22 @@ input[type="password"].invalid {
   100% { transform: rotate(360deg); }
 }
 
+/* Animação para a barra de progresso */
+@keyframes progressGlow {
+  0%, 100% { box-shadow: 0 0 5px rgba(211, 26, 32, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(211, 26, 32, 0.8); }
+}
+
+#loadingProgress {
+  animation: progressGlow 2s ease-in-out infinite;
+}
+
+/* Melhoria na animação do spinner */
+.spinner {
+  animation: spin 1s linear infinite;
+  filter: drop-shadow(0 0 10px rgba(211, 26, 32, 0.3));
+}
+
 /* Notificações */
 .notification {
   position: fixed;
@@ -1166,7 +1182,7 @@ input[type="text"], input[type="date"], input[type="password"], input[type="emai
     margin-left: -140px;
     font-size: 13px;
   }
-}
+
 
 /* === MELHORIAS DE PERFORMANCE === */
 * {
